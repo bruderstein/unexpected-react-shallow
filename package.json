@@ -1,0 +1,14 @@
+{
+  "name": "unexpected-react-shallow",
+  "version": "0.1.0",
+  "devDependencies": {
+    "babel": "^5.8.21",
+    "mocha": "^2.2.5",
+    "react": "^0.13.3",
+    "unexpected": "^9.5.0"
+  },
+  "dependencies": {
+    "array-changes": "^1.0.3",
+    "magicpen-prism": "^2.2.0"
+  }
+}
