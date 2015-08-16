@@ -83,6 +83,18 @@ function writeProp(output, propName, value, inspect) {
     }
 }
 
+function concatenateStringChildren(accum, value) {
+    if (typeof value === 'string' && accum.length &&
+        typeof accum[accum.length - 1] === 'string')
+    {
+        accum[accum.length - 1] = accum[accum.length - 1] + value;
+        return accum;
+    }
+    accum.push(value);
+    return accum;
+}
+
+
 
 function elementsMatch(actual, expected, equal, options) {
 
@@ -111,6 +123,12 @@ function elementsMatch(actual, expected, equal, options) {
         React.Children.forEach(actual.props.children, child => actualChildren.push(child));
         var expectedChildren = [];
         React.Children.forEach(expected.props.children, child => expectedChildren.push(child));
+
+        if (options && !options.exactly) {
+
+            actualChildren = actualChildren.reduce(concatenateStringChildren, []);
+            expectedChildren = expectedChildren.reduce(concatenateStringChildren, []);
+        }
 
         var arrayDiffs = ArrayChanges(
             actualChildren,
@@ -171,6 +189,11 @@ function diffChildren(actual, expected, output, diff, inspect, equal, options) {
     var expectedChildren = [];
     React.Children.forEach(expected, child => expectedChildren.push(child));
 
+    if (options && !options.exactly) {
+        actualChildren = actualChildren.reduce(concatenateStringChildren, []);
+        expectedChildren = expectedChildren.reduce(concatenateStringChildren, []);
+    }
+
     var changes = ArrayChanges(actualChildren, expectedChildren,
         function (a, b) {
             return elementsMatch(a, b, equal, options);
@@ -178,6 +201,10 @@ function diffChildren(actual, expected, output, diff, inspect, equal, options) {
 
                 function (a, b) {
                     // Figure out whether a and b are the same element so they can be diffed inline.
+                    if (typeof a === 'string' && typeof b === 'string') {
+                        return true;
+                    }
+
                     return (
                         getElementName(a)  === getElementName(b)
                     );
@@ -186,28 +213,32 @@ function diffChildren(actual, expected, output, diff, inspect, equal, options) {
     changes.forEach(function (diffItem, index) {
         output.i().block(function () {
             var type = diffItem.type;
-            var outputValue;
-
-            if (typeof diffItem.value === 'string') {
-                outputValue = function() {
-                    return function () {
-                        return this.text(diffItem.value)
-                    };
-                };
-            } else {
-                outputValue = function () {
-                    return inspect(diffItem.value);
-                };
-            }
 
             if (type === 'insert') {
                 this.annotationBlock(function () {
-                    this.error('missing ').block(outputValue());
+                    this.error('missing ');
+                    if (typeof diffItem.value === 'string') {
+                        this.block(function () {
+                            this.text(diffItem.value);
+                        });
+                    } else {
+                        this.block(inspect(diffItem.value));
+                    }
                 });
             } else if (type === 'remove') {
-                this.block(outputValue().sp().error('// should be removed'));
+                if (typeof diffItem.value === 'string') {
+                    this.block(function () { this.text(diffItem.value).sp().error('// should be removed') });
+                } else {
+                    this.block(inspect(diffItem.value).sp().error('// should be removed'));
+                }
             } else if (type === 'equal') {
-                this.block(outputValue());
+                if (typeof diffItem.value === 'string') {
+                    this.block(function () {
+                        this.text(diffItem.value)
+                    });
+                } else {
+                    this.block(inspect(diffItem.value));
+                }
             } else {
                 var valueDiff = diffElements(diffItem.value, diffItem.expected, output.clone(), diff, inspect, equal, options);
 
@@ -356,7 +387,12 @@ module.exports = {
                 if (React.Children.count(value.props.children)) {
                     output.prismPunctuation('>');
                     output.nl().indentLines();
-                    React.Children.forEach(value.props.children, child => {
+
+                    var children = [];
+                    React.Children.forEach(value.props.children, child => children.push(child));
+                    children = children.reduce(concatenateStringChildren, []);
+
+                    children.forEach(child => {
 
                         if (typeof child === 'string') {
                             output.i().prismString(child).nl();
