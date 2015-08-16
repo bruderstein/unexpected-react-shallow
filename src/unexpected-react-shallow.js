@@ -186,17 +186,32 @@ function diffChildren(actual, expected, output, diff, inspect, equal, options) {
     changes.forEach(function (diffItem, index) {
         output.i().block(function () {
             var type = diffItem.type;
+            var outputValue;
+
+            if (typeof diffItem.value === 'string') {
+                outputValue = function() {
+                    return function () {
+                        return this.text(diffItem.value)
+                    };
+                };
+            } else {
+                outputValue = function () {
+                    return inspect(diffItem.value);
+                };
+            }
+
             if (type === 'insert') {
                 this.annotationBlock(function () {
-                    this.error('missing ').block(inspect(diffItem.value));
+                    this.error('missing ').block(outputValue());
                 });
             } else if (type === 'remove') {
-                this.block(inspect(diffItem.value).sp().error('// should be removed'));
+                this.block(outputValue().sp().error('// should be removed'));
             } else if (type === 'equal') {
-                this.block(inspect(diffItem.value));
+                this.block(outputValue());
             } else {
                 var valueDiff = diffElements(diffItem.value, diffItem.expected, output.clone(), diff, inspect, equal, options);
-                if (valueDiff && valueDiff.inline) {
+
+                if (valueDiff) {
                     this.block(valueDiff.diff);
                 }
             }
@@ -225,6 +240,10 @@ function diffElements(actual, expected, output, diff, inspect, equal, options) {
         diff: output,
         inline: true
     };
+
+    if (typeof actual === 'string' && typeof expected === 'string') {
+        return diff(actual, expected);
+    }
     var emptyElements = (!actual.props || React.Children.count(actual.props.children) === 0) &&
         (!expected.props || React.Children.count(expected.props.children) === 0);
 

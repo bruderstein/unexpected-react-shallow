@@ -678,6 +678,132 @@ describe('unexpected-react-shallow', () => {
                 '</div>')
         });
 
+        it('matches a multi-text child', function () {
+
+            var content = 'test';
+            var content2 = 'test';
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        some text {content}
+                    </ClassComponent>
+                </div>
+            );
+
+            testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent>
+                        some text {content2}
+                    </ClassComponent>
+                </div>);
+        });
+
+        it('highlights changed in a multi-text child', function () {
+
+            var content = 'foo';
+            var content2 = 'bar';
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        some text {content}
+                    </ClassComponent>
+                </div>
+            );
+
+            expect(() => testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent>
+                        some text {content2}
+                    </ClassComponent>
+                </div>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    some text \n' +
+                '    foo\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                'to have rendered\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    some text \n' +
+                '    bar\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                '\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    some text \n' +
+                '    -foo\n' +
+                '    +bar\n' +
+                '  </ClassComponent>\n' +
+                '</div>');
+        });
+
+        it('matches a mixed content child', function () {
+
+            var content = <ES5Component foo="bar" />;
+            var content2 = <ES5Component foo="bar" />;
+
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        some text {content}
+                    </ClassComponent>
+                </div>
+            );
+
+            testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent>
+                        some text {content2}
+                    </ClassComponent>
+                </div>);
+        });
+
+        it('highlights changes in a mixed content child', function () {
+
+            var content = <ES5Component foo="bar" />;
+            var content2 = <ES5Component foo="blah" />;
+
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        some text {content}
+                    </ClassComponent>
+                </div>
+            );
+
+            expect(() => testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent>
+                        some text {content2}
+                    </ClassComponent>
+                </div>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    some text \n' +
+                '    <ES5Component foo="bar" />\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                'to have rendered\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    some text \n' +
+                '    <ES5Component foo="blah" />\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                '\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    some text \n' +
+                '    <ES5Component foo="bar" // -bar\n' +
+                '                            // +blah\n' +
+                '    ></ES5Component>\n' +
+                '  </ClassComponent>\n' +
+                '</div>');
+        });
     });
 
     describe('`to equal`', function () {
@@ -709,7 +835,7 @@ describe('unexpected-react-shallow', () => {
                 '                                  // +foobar\n' +
                 '  ></ClassComponent>\n' +
                 '</div>');
-        })
+        });
     });
 
 });
