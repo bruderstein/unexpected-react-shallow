@@ -92,6 +92,14 @@ describe('unexpected-react-shallow', () => {
                 'expected <div className={...} /> to equal 1');
         });
 
+        it('outputs a tag element with an function prop', () => {
+
+            var fn = function (a, b) { return a + b};
+            renderer.render(<div onClick={fn} />);
+            expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
+                'expected <div onClick={ function(){...} } /> to equal 1');
+        });
+
         it('outputs a tag with a single string child', () => {
 
             renderer.render(<div className="test">some content</div>);
@@ -890,6 +898,314 @@ describe('unexpected-react-shallow', () => {
                 '                                  // +foobar\n' +
                 '  ></ClassComponent>\n' +
                 '</div>');
+        });
+    });
+
+
+    describe('contains', function () {
+
+        it('finds an match at the top level', function () {
+
+            renderer.render(<div><ClassComponent className="foo" /></div>);
+            testExpect(renderer, 'to contain', <div><ClassComponent className="foo" /></div>);
+        });
+
+        it('finds a match at a deeper level', function () {
+
+            renderer.render(<div><span><ClassComponent className="foo" /></span></div>);
+            testExpect(renderer, 'to contain', <ClassComponent className="foo" />);
+        });
+
+        it('finds a match in an array of children', function () {
+
+            renderer.render(
+                <div>
+                    <span>nested</span>
+                    <span>
+                        <ClassComponent className="bar" />
+                        <ClassComponent className="foo" />
+                        <ClassComponent className="cheese" />
+                    </span>
+                </div>);
+            testExpect(renderer, 'to contain', <ClassComponent className="foo" />);
+        });
+
+        it('does not find a match when it does not exist', function () {
+
+            renderer.render(
+                <div>
+                    <span>nested</span>
+                    <span>
+                        <ClassComponent className="bar" />
+                        <ClassComponent className="foo" />
+                        <ClassComponent className="cheese" />
+                    </span>
+                </div>);
+
+            expect(() => testExpect(renderer, 'to contain', <ClassComponent className="notexists" />),
+                'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <span>\n' +
+                '    nested\n' +
+                '  </span>\n' +
+                '  <span>\n' +
+                '    <ClassComponent className="bar" />\n' +
+                '    <ClassComponent className="foo" />\n' +
+                '    <ClassComponent className="cheese" />\n' +
+                '  </span>\n' +
+                '</div>\n' +
+                'to contain <ClassComponent className="notexists" />');
+        });
+
+        it('does not find a match when the children of a candidate match are different', function () {
+
+            renderer.render(
+                <div>
+                    <span>nested</span>
+                    <span>
+                        <ClassComponent className="bar" />
+                        <ClassComponent className="foo" />
+                        <ClassComponent className="candidate">
+                            <span>something else</span>
+                        </ClassComponent>
+                    </span>
+                </div>);
+
+            expect(() => testExpect(renderer, 'to contain',
+                    <ClassComponent className="candidate">
+                        <span>cheese</span>
+                    </ClassComponent>),
+                    'to throw',
+                    'expected\n' +
+                    '<div>\n' +
+                    '  <span>\n' +
+                    '    nested\n' +
+                    '  </span>\n' +
+                    '  <span>\n' +
+                    '    <ClassComponent className="bar" />\n' +
+                    '    <ClassComponent className="foo" />\n' +
+                    '    <ClassComponent className="candidate">\n' +
+                    '      <span>\n' +
+                    '        something else\n' +
+                    '      </span>\n' +
+                    '    </ClassComponent>\n' +
+                    '  </span>\n' +
+                    '</div>\n' +
+                    'to contain\n' +
+                    '<ClassComponent className="candidate">\n' +
+                    '  <span>\n' +
+                    '    cheese\n' +
+                    '  </span>\n' +
+                    '</ClassComponent>');
+        });
+
+        it('finds the match when there are extra children in the render, but `exactly` is not used', function () {
+            renderer.render(
+                <div>
+                    <span>nested</span>
+                    <span>
+                        <ClassComponent className="bar" />
+                        <ClassComponent className="foo" />
+                        <ClassComponent className="candidate">
+                            <span>one</span>
+                            <span>two</span>
+                            <span>three</span>
+                        </ClassComponent>
+                    </span>
+                </div>);
+
+            testExpect(renderer, 'to contain',
+                <ClassComponent className="candidate">
+                    <span>one</span>
+                    <span>three</span>
+                </ClassComponent>);
+        });
+
+        it('finds the match when there are extra props in the render, but `exactly` is not used', function () {
+            renderer.render(
+                <div>
+                    <span>nested</span>
+                    <span>
+                        <ClassComponent className="bar" />
+                        <ClassComponent className="foo" />
+                        <ClassComponent className="candidate" id="123" />
+                    </span>
+                </div>);
+
+            testExpect(renderer, 'to contain', <ClassComponent className="candidate"/>);
+        });
+
+        it('does not find a match when there are extra props in the render, and `exactly` is used', function () {
+            renderer.render(
+                <div>
+                    <span>nested</span>
+                    <span>
+                        <ClassComponent className="bar" />
+                        <ClassComponent className="foo" />
+                        <ClassComponent className="candidate" id="123" />
+                    </span>
+                </div>);
+
+            expect(() => testExpect(renderer, 'to contain exactly', <ClassComponent className="candidate"/>),
+                'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <span>\n' +
+                '    nested\n' +
+                '  </span>\n' +
+                '  <span>\n' +
+                '    <ClassComponent className="bar" />\n' +
+                '    <ClassComponent className="foo" />\n' +
+                '    <ClassComponent className="candidate" id="123" />\n' +
+                '  </span>\n' +
+                '</div>\n' +
+                'to contain exactly <ClassComponent className="candidate" />');
+        });
+
+
+        it('does not find a match when there are extra children in the render, and `exactly` is used', function () {
+            renderer.render(
+                <div>
+                    <span>nested</span>
+                    <span>
+                        <ClassComponent className="bar" />
+                        <ClassComponent className="foo" />
+                        <ClassComponent className="candidate">
+                            <span>one</span>
+                            <span>two</span>
+                            <span>three</span>
+                        </ClassComponent>
+                    </span>
+                </div>);
+
+            expect(() => testExpect(renderer, 'to contain exactly',
+                <ClassComponent className="candidate">
+                    <span>one</span>
+                    <span>three</span>
+                </ClassComponent>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <span>\n' +
+                '    nested\n' +
+                '  </span>\n' +
+                '  <span>\n' +
+                '    <ClassComponent className="bar" />\n' +
+                '    <ClassComponent className="foo" />\n' +
+                '    <ClassComponent className="candidate">\n' +
+                '      <span>\n' +
+                '        one\n' +
+                '      </span>\n' +
+                '      <span>\n' +
+                '        two\n' +
+                '      </span>\n' +
+                '      <span>\n' +
+                '        three\n' +
+                '      </span>\n' +
+                '    </ClassComponent>\n' +
+                '  </span>\n' +
+                '</div>\n' +
+                'to contain exactly\n' +
+                '<ClassComponent className="candidate">\n' +
+                '  <span>\n' +
+                '    one\n' +
+                '  </span>\n' +
+                '  <span>\n' +
+                '    three\n' +
+                '  </span>\n' +
+                '</ClassComponent>');
+        });
+
+        it('finds a match when the render contains children, but the expected does not, and `exactly` is not used', function () {
+            renderer.render(
+                <div>
+                    <span>nested</span>
+                    <span>
+                        <ClassComponent className="bar" />
+                        <ClassComponent className="foo" />
+                        <ClassComponent className="candidate">
+                            <span>one</span>
+                            <span>two</span>
+                            <span>three</span>
+                        </ClassComponent>
+                    </span>
+                </div>);
+
+            testExpect(renderer, 'to contain', <ClassComponent className="candidate" />);
+        });
+
+        it('does not find a match when the render contains children, but the expected does not, and `exactly` is used', function () {
+            renderer.render(
+                <div>
+                    <span>nested</span>
+                    <span>
+                        <ClassComponent className="bar" />
+                        <ClassComponent className="foo" />
+                        <ClassComponent className="candidate">
+                            <span>one</span>
+                            <span>two</span>
+                            <span>three</span>
+                        </ClassComponent>
+                    </span>
+                </div>);
+
+            expect(() => testExpect(renderer, 'to contain exactly', <ClassComponent className="candidate" />),
+                'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <span>\n' +
+                '    nested\n' +
+                '  </span>\n' +
+                '  <span>\n' +
+                '    <ClassComponent className="bar" />\n' +
+                '    <ClassComponent className="foo" />\n' +
+                '    <ClassComponent className="candidate">\n' +
+                '      <span>\n' +
+                '        one\n' +
+                '      </span>\n' +
+                '      <span>\n' +
+                '        two\n' +
+                '      </span>\n' +
+                '      <span>\n' +
+                '        three\n' +
+                '      </span>\n' +
+                '    </ClassComponent>\n' +
+                '  </span>\n' +
+                '</div>\n' +
+                'to contain exactly <ClassComponent className="candidate" />');
+        });
+
+        it('does not find a match if the expected has children, but the candidate match does not', function () {
+
+            renderer.render(
+                <div>
+                    <span>nested</span>
+                    <span>
+                        <ClassComponent className="bar" />
+                        <ClassComponent className="candidate" />
+                    </span>
+                </div>);
+
+            expect(() => testExpect(renderer, 'to contain',
+                <ClassComponent className="candidate">
+                    <span>foo</span>
+                </ClassComponent>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <span>\n' +
+                '    nested\n' +
+                '  </span>\n' +
+                '  <span>\n' +
+                '    <ClassComponent className="bar" />\n' +
+                '    <ClassComponent className="candidate" />\n' +
+                '  </span>\n' +
+                '</div>\n' +
+                'to contain\n' +
+                '<ClassComponent className="candidate">\n' +
+                '  <span>\n' +
+                '    foo\n' +
+                '  </span>\n' +
+                '</ClassComponent>');
         });
     });
 });

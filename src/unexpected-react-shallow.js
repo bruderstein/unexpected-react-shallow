@@ -75,10 +75,7 @@ function writeProp(output, propName, value, inspect) {
             }
             break;
         case 'function':
-            output.prismPunctuation('{').prismAttrValue(' function(){} ').prismPunctuation('}');
-            break;
-        default:
-            output.prismPunctuation('{').prismAttrValue(' ?unknown-type? ').prismPunctuation('}');
+            output.prismPunctuation('{').prismAttrValue(' function(){...} ').prismPunctuation('}');
             break;
     }
 }
@@ -111,6 +108,13 @@ function elementsMatch(actual, expected, equal, options) {
     }
 
     if (!propsMatch(getProps(actual), getProps(expected), equal, options)) {
+        return false;
+    }
+
+    // For 'exactly', we can just check the count of the actual children matches,
+    // string children will not be concatenated in this mode, and serves to also check
+    // the case that the expected does not have children, but the actual does (ignored when exactly=false)
+    if (options.exactly && React.Children.count(expected.props.children) !== React.Children.count(actual.props.children)) {
         return false;
     }
 
@@ -171,11 +175,31 @@ function compareElements(actual, expected, expect, options) {
     if (!result) {
         return expect.fail('elements are not equal');
     }
-    return;
 }
 
+function findElementIn(haystack, needle, expect, options) {
 
+    if (elementsMatch(haystack, needle, expect.equal.bind(expect), options)) {
+        return true;
+    }
 
+    var found = false;
+    if (haystack.props && haystack.props.children) {
+
+        React.Children.forEach(haystack.props.children, child => {
+
+            if (elementsMatch(child, needle, expect.equal.bind(expect), options)) {
+                found = true;
+                return;
+            }
+
+            if (findElementIn(child, needle, expect, options)) {
+                found = true;
+            }
+        });
+    }
+    return found;
+}
 
 function diffChildren(actual, expected, output, diff, inspect, equal, options) {
     if (typeof actual === 'string' && typeof expected === 'string') {
@@ -254,16 +278,13 @@ function propsMatch(actual, expected, equal, options) {
     if (options && options.exactly) {
         return equal(actual, expected);
     }
-    if (expected) {
-        var matching = true;
-        Object.keys(expected).forEach(key => {
-            if (!equal(actual[key], expected[key])) {
-                 matching = false;
-            }
-        });
-        return matching;
-    }
-    return true;
+    var matching = true;
+    Object.keys(expected).forEach(key => {
+        if (!equal(actual[key], expected[key])) {
+            matching = false;
+        }
+    });
+    return matching;
 }
 
 function diffElements(actual, expected, output, diff, inspect, equal, options) {
@@ -436,9 +457,40 @@ module.exports = {
             })
         });
 
+        expect.addAssertion('ReactElement', 'to contain', function (expect, subject, expected) {
+
+            if (!findElementIn(subject, expected, expect, {
+                    exactly: false
+                })) {
+                expect.fail();
+            }
+        });
+
+        expect.addAssertion('ReactElement', 'to contain exactly', function (expect, subject, expected) {
+
+            if (!findElementIn(subject, expected, expect, {
+                    exactly: true
+                })) {
+                expect.fail();
+            }
+        });
+
         expect.addAssertion('ReactShallowRenderer', 'to have [exactly] rendered', function (expect, subject, renderOutput) {
+
                 var actual = subject.getRenderOutput();
                 return expect(actual, 'to have ' + (this.flags.exactly ? 'exactly ' : '') + 'rendered', renderOutput);
+        });
+
+        expect.addAssertion('ReactShallowRenderer', 'to contain', function (expect, subject, expected) {
+
+            var actual = subject.getRenderOutput();
+            return expect(actual, 'to contain', expected);
+        });
+
+        expect.addAssertion('ReactShallowRenderer', 'to contain exactly', function (expect, subject, expected) {
+
+            var actual = subject.getRenderOutput();
+            return expect(actual, 'to contain exactly', expected);
         });
 
     }
