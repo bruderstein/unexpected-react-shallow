@@ -25,6 +25,18 @@ function getProps(element) {
     return null;
 }
 
+function writeProps(output, props) {
+    if (props) {
+        Object.keys(props).forEach(function (prop) {
+            if (prop === 'children') {
+                return;
+            }
+            output.text(' ');
+            writeProp(output, prop, props[prop]);
+        });
+    }
+}
+
 function writeProp(output, propName, value) {
 
     output.prismAttrName(propName)
@@ -46,7 +58,7 @@ function writeProp(output, propName, value) {
             if (value === null) {
                 output.prismPunctuation('{').prismAttrValue('null').prismPunctuation('}');
             } else {
-                output.prismPunctuation('{').prismAttrValue('[object]').prismPunctuation('}');
+                output.prismPunctuation('{').prismAttrValue('...').prismPunctuation('}');
             }
             break;
         case 'function':
@@ -59,19 +71,104 @@ function writeProp(output, propName, value) {
 }
 
 
-function diffChildren(actual, expected, output, diff, inspect, equal) {
+function elementsMatch(actual, expected, equal, options) {
+
     if (typeof actual === 'string' && typeof expected === 'string') {
-        var stringDiff = diff(actual, expected);
+        return actual === expected;
+    }
+
+    if (typeof actual !== typeof expected) {   // Fundamentally different e.g. string vs ReactElement
+        return false;
+    }
+
+    if (getElementName(actual) !== getElementName(expected)) {
+        return false;
+    }
+
+    if (!propsMatch(getProps(actual), getProps(expected), equal, options)) {
+        return false;
+    }
+
+    if (expected.props.children) {
+        if (!actual.props.children) {
+            return false;
+        }
+
+        var actualChildren = [];
+        React.Children.forEach(actual.props.children, child => actualChildren.push(child));
+        var expectedChildren = [];
+        React.Children.forEach(expected.props.children, child => expectedChildren.push(child));
+
+        var arrayDiffs = ArrayChanges(
+            actualChildren,
+            expectedChildren,
+            function (a, b) {
+                return elementsMatch(a, b, equal, options);
+            },
+            function () {
+                return false;
+            });
+
+        var arrayMatches = true;
+        arrayDiffs.forEach(diffItem => {
+            switch (diffItem.type) {
+                case 'equal':
+                    return;
+                case 'remove':
+                    if (options.exactly) {
+                        arrayMatches = false;
+                    }
+                    break;
+                default:
+                    arrayMatches = false;
+                    break;
+
+            }
+        });
+
+        if (!arrayMatches) {
+            return false;
+        }
+    }
+    return true;
+
+}
+
+function compareElements(actual, expected, expect, options) {
+
+    var result  = elementsMatch(actual, expected, expect.equal.bind(expect), options);
+    if (!result) {
+        return expect.fail('elements are not equal');
+    }
+    return;
+}
+
+
+
+
+function diffChildren(actual, expected, output, diff, inspect, equal, options) {
+    if (typeof actual === 'string' && typeof expected === 'string') {
+        var stringDiff = diff(actual.trim(), expected.trim());
         output.i().block(stringDiff.diff);
         return;
     }
 
-    var changes = ArrayChanges(Array.prototype.slice.call(actual), Array.prototype.slice.call(expected), equal, function (a, b) {
-        // Figure out whether a and b are "struturally similar" so they can be diffed inline.
-        return (
-            getElementName(a)  === getElementName(b)
-        );
-    });
+    var actualChildren = [];
+    React.Children.forEach(actual, child => actualChildren.push(child));
+    var expectedChildren = [];
+    React.Children.forEach(expected, child => expectedChildren.push(child));
+
+    var changes = ArrayChanges(actualChildren, expectedChildren,
+        function (a, b) {
+            return elementsMatch(a, b, equal, options);
+        },
+
+                function (a, b) {
+                    // Figure out whether a and b are the same element so they can be diffed inline.
+                    return (
+                        getElementName(a)  === getElementName(b)
+                    );
+                } );
 
     changes.forEach(function (diffItem, index) {
         output.i().block(function () {
@@ -85,7 +182,7 @@ function diffChildren(actual, expected, output, diff, inspect, equal) {
             } else if (type === 'equal') {
                 this.block(inspect(diffItem.value));
             } else {
-                var valueDiff = diff(diffItem.value, diffItem.expected);
+                var valueDiff = diffElements(diffItem.value, diffItem.expected, output.clone(), diff, inspect, equal, options);
                 if (valueDiff && valueDiff.inline) {
                     this.block(valueDiff.diff);
                 } else if (valueDiff) {
@@ -101,6 +198,98 @@ function diffChildren(actual, expected, output, diff, inspect, equal) {
         }).nl(index < changes.length - 1 ? 1 : 0);
     });
 }
+
+function propsMatch(actual, expected, equal, options) {
+    if (options && options.exactly) {
+        return equal(actual, expected);
+    }
+    if (expected) {
+        var matching = true;
+        Object.keys(expected).forEach(key => {
+            if (!equal(actual[key], expected[key])) {
+                 matching = false;
+            }
+        });
+        return matching;
+    }
+    return true;
+}
+
+function diffElements(actual, expected, output, diff, inspect, equal, options) {
+    var result = {
+        diff: output,
+        inline: true
+    };
+    var emptyElements = (!actual.props || React.Children.count(actual.props.children) === 0) &&
+        (!expected.props || React.Children.count(expected.props.children) === 0);
+
+    var propsMatching = propsMatch(getProps(actual), getProps(expected), equal, options);
+
+    var conflictingElement = getElementName(actual) !== getElementName(expected) || !propsMatching;
+
+    if (conflictingElement) {
+        var canContinueLine = true;
+        output
+            .prismPunctuation('<')
+            .prismTag(getElementName(actual));
+        if (getElementName(actual) !== getElementName(expected)) {
+            output.sp().annotationBlock(function () {
+                this.error('should be').sp().prismTag(getElementName(expected));
+            }).nl();
+            canContinueLine = false;
+        }
+        var actualProps = getProps(actual);
+        var expectedProps = getProps(expected);
+        Object.keys(actualProps).forEach(function (propName) {
+            output.sp(canContinueLine ? 1 : 2 + getElementName(actual).length);
+            writeProp(output, propName, actualProps[propName]);
+            if (propName in expectedProps) {
+                if (actualProps[propName] === expectedProps[propName]) {
+                    canContinueLine = true;
+                } else {
+                    output.sp().annotationBlock(function () {
+                        if (typeof actualProps[propName] === 'object') {
+                            this.append(inspect(actualProps[propName])).sp();
+                        }
+                        this.error('should equal').sp().append(inspect(expectedProps[propName]));
+                    }).nl();
+                    canContinueLine = false;
+                }
+                delete expectedProps[propName];
+            } else if (options.exactly) {
+                output.sp().annotationBlock(function () {
+                    this.error('should be removed');
+                }).nl();
+                canContinueLine = false;
+            }
+        });
+        Object.keys(expectedProps).forEach(function (propName) {
+            output.sp(canContinueLine ? 1 : 2 + getElementName(actual).length);
+            output.annotationBlock(function () {
+                this.error('missing').sp();
+                writeProp(this, propName, expectedProps[propName]);
+            }).nl();
+            canContinueLine = false;
+        });
+        output.prismPunctuation('>');
+    } else {
+        output.prismPunctuation('<')
+            .prismTag(getElementName(actual));
+        writeProps(output, actual.props);
+        output.prismPunctuation('>');
+    }
+
+    if (!emptyElements) {
+        output.nl().indentLines();
+        diffChildren(actual.props.children, expected.props.children, output, diff, inspect, equal, options);
+        output.nl().outdentLines();
+    }
+
+    output.code('</' + getElementName(actual) + '>', 'html');
+    return result;
+}
+
+
 module.exports = {
     name: 'unexpected-react-shallow',
     installInto: function (expect) {
@@ -139,17 +328,7 @@ module.exports = {
                     .text('<')
                     .text(getElementName(value));
 
-                if (value.props) {
-                    Object.keys(value.props).forEach(function (prop) {
-                        if (prop === 'children') {
-                            return;
-                        }
-
-                        output.text(' ');
-                        writeProp(output, prop, value.props[prop]);
-                    });
-
-                }
+                writeProps(output, value.props);
 
                 if (React.Children.count(value.props.children)) {
                     output.text('>');
@@ -172,78 +351,37 @@ module.exports = {
             },
 
             diff(actual, expected, output, diff, inspect, equal) {
-
-                var result = {
-                    diff: output,
-                    inline: true
-                };
-                var emptyElements = (!actual.props || React.Children.count(actual.props.children) === 0) &&
-                    (!expected.props || React.Children.count(expected.props.children) === 0);
-                var conflictingElement = getElementName(actual) !== getElementName(expected) || !equal(getProps(actual), getProps(expected));
-
-                if (conflictingElement) {
-                    var canContinueLine = true;
-                    output
-                        .prismPunctuation('<')
-                        .prismTag(getElementName(actual));
-                    if (getElementName(actual) !== getElementName(expected)) {
-                        output.sp().annotationBlock(function () {
-                            this.error('should be').sp().prismTag(getElementName(expected));
-                        }).nl();
-                        canContinueLine = false;
-                    }
-                    var actualProps = getProps(actual);
-                    var expectedProps = getProps(expected);
-                    Object.keys(actualProps).forEach(function (propName) {
-                        output.sp(canContinueLine ? 1 : 2 + getElementName(actual).length);
-                        writeProp(output, propName, actualProps[propName]);
-                        if (propName in expectedProps) {
-                            if (actualProps[propName] === expectedProps[propName]) {
-                                canContinueLine = true;
-                            } else {
-                                output.sp().annotationBlock(function () {
-                                    this.error('should equal').sp().append(inspect(expectedProps[propName]));
-                                }).nl();
-                                canContinueLine = false;
-                            }
-                            delete expectedProps[propName];
-                        } else {
-                            output.sp().annotationBlock(function () {
-                                this.error('should be removed');
-                            }).nl();
-                            canContinueLine = false;
-                        }
-                    });
-                    Object.keys(expectedProps).forEach(function (propName) {
-                        output.sp(canContinueLine ? 1 : 2 + getElementName(actual).length);
-                        output.annotationBlock(function () {
-                            this.error('missing').sp();
-                            writeProp(this, propName, expectedProps[propName]);
-                        }).nl();
-                        canContinueLine = false;
-                    });
-                    output.prismPunctuation('>');
-                } else {
-                    output.code('<' + getElementName(actual) + '>', 'html');
-                }
-
-                if (!emptyElements) {
-                    output.nl().indentLines();
-                    diffChildren(actual.props.children, expected.props.children, output, diff, inspect, equal);
-                    output.nl().outdentLines();
-                }
-
-                output.code('</' + getElementName(actual) + '>', 'html');
-                return result;
+                return diffElements(actual, expected, output, diff, inspect, equal);
+            },
+            equal(a, b, equal) {
+                return elementsMatch(a, b, equal, { exactly: true });
             }
         });
 
-        expect.addAssertion('ReactElement', 'to have rendered', function (expect, subject, renderOutput) {
-            expect(subject, 'to equal', renderOutput);
+        expect.addAssertion('ReactElement', 'to have [exactly] rendered', function (expect, subject, renderOutput) {
+
+            var exactly = this.flags.exactly;
+
+
+            expect.withError(function () {
+                return compareElements(subject, renderOutput, expect, {
+                    exactly: exactly
+                });
+                // return expect(subject, 'to equal', renderOutput);
+            }, function (e) {
+                return expect.fail({
+                    diff : function (output, diff, inspect, equal) {
+                        return diffElements(subject, renderOutput, output, diff, inspect, equal, {
+                            exactly: exactly
+                        });
+                    }
+                });
+            })
         });
 
-        expect.addAssertion('ReactShallowRenderer', 'to have rendered', function (expect, subject, renderOutput) {
-            expect(subject.getRenderOutput(), 'to have rendered', renderOutput);
+        expect.addAssertion('ReactShallowRenderer', 'to have [exactly] rendered', function (expect, subject, renderOutput) {
+                var actual = subject.getRenderOutput();
+                return expect(actual, 'to have ' + (this.flags.exactly ? 'exactly ' : '') + 'rendered', renderOutput);
         });
 
     }

@@ -84,6 +84,14 @@ describe('unexpected-react-shallow', () => {
                 'expected <div className={undefined} /> to equal 1');
         });
 
+        it('outputs a tag element with an object prop', () => {
+
+            var obj = { some: 'prop' };
+            renderer.render(<div className={obj} />);
+            expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
+                'expected <div className={...} /> to equal 1');
+        });
+
         it('outputs a tag with a single string child', () => {
 
             renderer.render(<div className="test">some content</div>);
@@ -182,10 +190,7 @@ describe('unexpected-react-shallow', () => {
         it('shows changed props within a simple native element', () => {
 
             renderer.render(<div className="actual">Some simple content</div>);
-            testExpect(renderer, 'to have rendered',
-                <div className="expected">
-                    Some simple content
-                </div>),
+
             expect(() => testExpect(renderer, 'to have rendered',
                 <div className="expected">
                     Some simple content
@@ -200,12 +205,468 @@ describe('unexpected-react-shallow', () => {
 	            '</div>\n' +
                 '\n' +
 	            '<div className="actual" // should equal \'expected\'\n' +
-                '  >\n' +
+                '>\n' +
+                '   Some simple content\n' +
+                '</div>');
+        });
+
+        it('shows missing props within a simple native element', () => {
+
+            renderer.render(<div>Some simple content</div>);
+
+            expect(() => testExpect(renderer, 'to have rendered',
+                    <div className="expected" id="123">
+                        Some simple content
+                    </div>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
                 '  Some simple content\n' +
+                '</div>\n' +
+                'to have rendered\n' +
+                '<div className="expected" id="123">\n' +
+                '  Some simple content\n' +
+                '</div>\n' +
+                '\n' +
+                '<div // missing className="expected"\n' +
+                '     // missing id="123"\n' +
+                '>\n' +
+                '   Some simple content\n' +
+                '</div>');
+        });
+
+        it('ignores extra props within a simple native element', () => {
+
+            renderer.render(<div id="123" className="extra">Some simple content</div>);
+
+            testExpect(renderer, 'to have rendered',
+                    <div id="123">
+                        Some simple content
+                    </div>);
+        });
+
+        it('does not ignore extra props when using `exactly`', function () {
+
+            renderer.render(<div id="123" className="extra">Some simple content</div>);
+            expect(() => {
+                testExpect(renderer, 'to have exactly rendered',
+                    <div id="123">
+                        Some simple content
+                    </div>);
+            }, 'to throw',
+                'expected\n' +
+                '<div id="123" className="extra">\n' +
+                '  Some simple content\n' +
+                '</div>\n' +
+                'to have exactly rendered\n' +
+                '<div id="123">\n' +
+                '  Some simple content\n' +
+                '</div>\n' +
+                '\n' +
+                '<div id="123" className="extra" // should be removed\n' +
+                '>\n' +
+                '   Some simple content\n' +
+                '</div>');
+        });
+
+        it('matches props on a custom component', function () {
+
+            renderer.render(
+                <div>
+                    <ClassComponent test={true} className="foo">
+                        <span className="bar">foo</span>
+                    </ClassComponent>
+                </div>
+            );
+
+            testExpect(renderer, 'to have exactly rendered',
+                <div>
+                    <ClassComponent className="foo" test={true}>
+                        <span className="bar">foo</span>
+                    </ClassComponent>
+                </div>);
+        });
+
+        it('highlights diffs on a nested custom component', function () {
+
+            renderer.render(
+                <div>
+                    <ClassComponent test={true} className="foo">
+                        <span className="bar">foo</span>
+                    </ClassComponent>
+                </div>
+            );
+
+            expect(() => testExpect(renderer, 'to have exactly rendered',
+                <div>
+                    <ClassComponent className="foo" test={false}>
+                        <span className="bar">foo</span>
+                    </ClassComponent>
+                </div>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent test={true} className="foo">\n' +
+                '    <span className="bar">\n' +
+                '      foo\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                'to have exactly rendered\n' +
+                '<div>\n' +
+                '  <ClassComponent className="foo" test={false}>\n' +
+                '    <span className="bar">\n' +
+                '      foo\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                '\n' +
+                '<div>\n' +
+                '  <ClassComponent test={true} // should equal false\n' +
+                '                  className="foo">\n' +
+                '    <span className="bar">\n' +
+                '      foo\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>');
+
+        });
+
+
+        it('ignores extra props on a nested custom component when not using `exactly`', function () {
+
+            renderer.render(
+                <div>
+                    <ClassComponent test={true} className="foo" extraProp="boo!">
+                        <span className="bar">foo</span>
+                    </ClassComponent>
+                </div>
+            );
+
+            testExpect(renderer, 'to have rendered',
+                    <div>
+                        <ClassComponent className="foo" test={true}>
+                            <span className="bar">foo</span>
+                        </ClassComponent>
+                    </div>);
+
+        });
+
+        it('highlights extra props on a nested custom component when using `exactly`', function () {
+
+            renderer.render(
+                <div>
+                    <ClassComponent test={true} className="foo" extraProp="boo!">
+                        <span className="bar">foo</span>
+                    </ClassComponent>
+                </div>
+            );
+
+            expect(() => testExpect(renderer, 'to have exactly rendered',
+                <div>
+                    <ClassComponent className="foo" test={true}>
+                        <span className="bar">foo</span>
+                    </ClassComponent>
+                </div>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent test={true} className="foo" extraProp="boo!">\n' +
+                '    <span className="bar">\n' +
+                '      foo\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                'to have exactly rendered\n' +
+                '<div>\n' +
+                '  <ClassComponent className="foo" test={true}>\n' +
+                '    <span className="bar">\n' +
+                '      foo\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                '\n' +
+                '<div>\n' +
+                '  <ClassComponent test={true} className="foo" extraProp="boo!" // should be removed\n' +
+                '  >\n' +
+                '    <span className="bar">\n' +
+                '      foo\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>');
+
+
+        });
+
+        it('matches array of children in a custom component', function () {
+
+            renderer.render(
+                <div>
+                    <ClassComponent test={true} className="foo">
+                        <span className="one">1</span>
+                        <span className="two">2</span>
+                    </ClassComponent>
+                </div>
+            );
+
+            testExpect(renderer, 'to have exactly rendered',
+                <div>
+                    <ClassComponent className="foo" test={true}>
+                        <span className="one">1</span>
+                        <span className="two">2</span>
+                    </ClassComponent>
+                </div>);
+        });
+
+        it('highlights a removed item in an array of children in a custom component', function () {
+
+            renderer.render(
+                <div>
+                    <ClassComponent test={true} className="foo">
+                        <span className="one">1</span>
+                        <span className="three">3</span>
+                    </ClassComponent>
+                </div>
+            );
+
+            expect(() => testExpect(renderer, 'to have exactly rendered',
+                <div>
+                    <ClassComponent className="foo" test={true}>
+                        <span className="one">1</span>
+                        <span className="two">2</span>
+                        <span className="three">3</span>
+                    </ClassComponent>
+                </div>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent test={true} className="foo">\n' +
+                '    <span className="one">\n' +
+                '      1\n' +
+                '    </span>\n' +
+                '    <span className="three">\n' +
+                '      3\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                'to have exactly rendered\n' +
+                '<div>\n' +
+                '  <ClassComponent className="foo" test={true}>\n' +
+                '    <span className="one">\n' +
+                '      1\n' +
+                '    </span>\n' +
+                '    <span className="two">\n' +
+                '      2\n' +
+                '    </span>\n' +
+                '    <span className="three">\n' +
+                '      3\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                '\n' +
+                '<div>\n' +
+                '  <ClassComponent test={true} className="foo">\n' +
+                '    <span className="one">\n' +
+                '      1\n' +
+                '    </span>\n' +
+                '    <span className="three" // should equal \'two\'\n' +
+                '    >\n' +
+                '      -3\n' +
+                '      +2\n' +
+                '    </span>\n' +
+                '    // missing <span className="three">\n' +
+                '    //           3\n' +
+                '    //         </span>\n' +
+                '  </ClassComponent>\n' +
                 '</div>');
         });
 
 
+        it('highlights an added item in an array of children in a custom component', function () {
+
+            renderer.render(
+                <div>
+                    <ClassComponent test={true} className="foo">
+                        <span className="one">1</span>
+                        <span className="three">3</span>
+                    </ClassComponent>
+                </div>
+            );
+
+            expect(() => testExpect(renderer, 'to have exactly rendered',
+                <div>
+                    <ClassComponent className="foo" test={true}>
+                        <span className="one">1</span>
+                        <span className="two">2</span>
+                        <span className="three">3</span>
+                    </ClassComponent>
+                </div>
+            ), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent test={true} className="foo">\n' +
+                '    <span className="one">\n' +
+                '      1\n' +
+                '    </span>\n' +
+                '    <span className="three">\n' +
+                '      3\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                'to have exactly rendered\n' +
+                '<div>\n' +
+                '  <ClassComponent className="foo" test={true}>\n' +
+                '    <span className="one">\n' +
+                '      1\n' +
+                '    </span>\n' +
+                '    <span className="two">\n' +
+                '      2\n' +
+                '    </span>\n' +
+                '    <span className="three">\n' +
+                '      3\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                '\n' +
+                '<div>\n' +
+                '  <ClassComponent test={true} className="foo">\n' +
+                '    <span className="one">\n' +
+                '      1\n' +
+                '    </span>\n' +
+                '    <span className="three" // should equal \'two\'\n' +
+                '    >\n' +
+                '      -3\n' +
+                '      +2\n' +
+                '    </span>\n' +
+                '    // missing <span className="three">\n' +
+                '    //           3\n' +
+                '    //         </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>');
+
+        });
+
+        it('accepts added children at the end of an array when not using `exactly`', function () {
+
+            renderer.render(
+                <div>
+                    <ClassComponent test={true} className="foo">
+                        <span className="one">1</span>
+                        <span className="two">2</span>
+                        <span className="three">3</span>
+                    </ClassComponent>
+                </div>
+            );
+
+            testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent className="foo" test={true}>
+                        <span className="one">1</span>
+                        <span className="two">2</span>
+                    </ClassComponent>
+                </div>);
+        });
+
+        it('accepts added children in the middle of an array when not using `exactly`', function () {
+
+            renderer.render(
+                <div>
+                    <ClassComponent test={true} className="foo">
+                        <span className="one">1</span>
+                        <span className="two">2</span>
+                        <span className="three">3</span>
+                    </ClassComponent>
+                </div>
+            );
+
+            testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent className="foo" test={true}>
+                        <span className="one">1</span>
+                        <span className="three">3</span>
+                    </ClassComponent>
+                </div>);
+        });
+
+        it('highlights different typed children', function () {
+
+            renderer.render(
+                <div>
+                    <ClassComponent test={true} className="foo">
+                        <ClassComponent child={true} />
+                    </ClassComponent>
+                </div>
+            );
+
+            expect(() => testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent className="foo" test={true}>
+                        <ES5Component child={true} />
+                    </ClassComponent>
+                </div>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent test={true} className="foo">\n' +
+                '    <ClassComponent child={true} />\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                'to have rendered\n' +
+                '<div>\n' +
+                '  <ClassComponent className="foo" test={true}>\n' +
+                '    <ES5Component child={true} />\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                '\n' +
+                '<div>\n' +
+                '  <ClassComponent test={true} className="foo">\n' +
+                '    <ClassComponent // should be ES5Component\n' +
+                '                    child={true}></ClassComponent>\n' +
+                '  </ClassComponent>\n' +
+                '</div>');
+        });
+
+        it('matches matching objects as props deeply not be reference', function () {
+
+            var objectA = { some: 'prop', arr: [ 1, 2, 3 ] };
+            var objectB = { some: 'prop', arr: [ 1, 2, 3 ] };
+
+            renderer.render(
+                <div>
+                    <ClassComponent test={objectA} />
+                </div>
+            );
+
+            testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent test={objectB} />
+                </div>);
+        });
+
+        it('highlights different objects as props deeply not be reference', function () {
+
+            var objectA = { some: 'prop', arr: [ 1, 2, 3 ] };
+            var objectB = { some: 'prop', arr: [ 1, 2, 4 ] };
+
+            renderer.render(
+                <div>
+                    <ClassComponent test={objectA} />
+                </div>
+            );
+
+            expect(() => testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent test={objectB} />
+                </div>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent test={...} />\n' +
+                '</div>\n' +
+                'to have rendered\n' +
+                '<div>\n' +
+                '  <ClassComponent test={...} />\n' +
+                '</div>\n' +
+                '\n' +
+                '<div>\n' +
+                "  <ClassComponent test={...} // { some: 'prop', arr: [ 1, 2, 3 ] } should equal { some: 'prop', arr: [ 1, 2, 4 ] }\n" +
+                '  ></ClassComponent>\n' +
+                '</div>')
+        });
     });
 
 });
