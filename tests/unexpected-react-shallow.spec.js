@@ -698,6 +698,25 @@ describe('unexpected-react-shallow', () => {
                 </div>);
         });
 
+        it('matches a multi-text child to a single text child without exactly', function () {
+
+            var content = 'test';
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        some text {content}
+                    </ClassComponent>
+                </div>
+            );
+
+            testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent>
+                        some text test
+                    </ClassComponent>
+                </div>);
+        });
+
         it('highlights changed in a multi-text child', function () {
 
             var content = 'foo';

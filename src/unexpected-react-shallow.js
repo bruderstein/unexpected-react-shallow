@@ -186,28 +186,32 @@ function diffChildren(actual, expected, output, diff, inspect, equal, options) {
     changes.forEach(function (diffItem, index) {
         output.i().block(function () {
             var type = diffItem.type;
-            var outputValue;
-
-            if (typeof diffItem.value === 'string') {
-                outputValue = function() {
-                    return function () {
-                        return this.text(diffItem.value)
-                    };
-                };
-            } else {
-                outputValue = function () {
-                    return inspect(diffItem.value);
-                };
-            }
 
             if (type === 'insert') {
                 this.annotationBlock(function () {
-                    this.error('missing ').block(outputValue());
+                    this.error('missing ');
+                    if (typeof diffItem.value === 'string') {
+                        this.block(function () {
+                            this.text(diffItem.value);
+                        });
+                    } else {
+                        this.block(inspect(diffItem.value));
+                    }
                 });
             } else if (type === 'remove') {
-                this.block(outputValue().sp().error('// should be removed'));
+                if (typeof diffItem.value === 'string') {
+                    this.block(output.text(diffItem.value).sp().error('// should be removed'));
+                } else {
+                    this.block(inspect(diffItem.value).sp().error('// should be removed'));
+                }
             } else if (type === 'equal') {
-                this.block(outputValue());
+                if (typeof diffItem.value === 'string') {
+                    this.block(function () {
+                        this.text(diffItem.value)
+                    });
+                } else {
+                    this.block(inspect(diffItem.value));
+                }
             } else {
                 var valueDiff = diffElements(diffItem.value, diffItem.expected, output.clone(), diff, inspect, equal, options);
 
