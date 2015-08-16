@@ -204,7 +204,8 @@ describe('unexpected-react-shallow', () => {
 	            '  Some simple content\n' +
 	            '</div>\n' +
                 '\n' +
-	            '<div className="actual" // should equal \'expected\'\n' +
+	            '<div className="actual" // -actual\n' +
+                '                        // +expected\n' +
                 '>\n' +
                 '   Some simple content\n' +
                 '</div>');
@@ -465,7 +466,8 @@ describe('unexpected-react-shallow', () => {
                 '    <span className="one">\n' +
                 '      1\n' +
                 '    </span>\n' +
-                '    <span className="three" // should equal \'two\'\n' +
+                '    <span className="three" // -three\n' +
+                '                            // +two\n' +
                 '    >\n' +
                 '      -3\n' +
                 '      +2\n' +
@@ -529,7 +531,8 @@ describe('unexpected-react-shallow', () => {
                 '    <span className="one">\n' +
                 '      1\n' +
                 '    </span>\n' +
-                '    <span className="three" // should equal \'two\'\n' +
+                '    <span className="three" // -three\n' +
+                '                            // +two\n' +
                 '    >\n' +
                 '      -3\n' +
                 '      +2\n' +
@@ -663,7 +666,14 @@ describe('unexpected-react-shallow', () => {
                 '</div>\n' +
                 '\n' +
                 '<div>\n' +
-                "  <ClassComponent test={{ some: 'prop', arr: [ 1, 2, 3 ] }} // should equal { some: 'prop', arr: [ 1, 2, 4 ] }\n" +
+                "  <ClassComponent test={{ some: 'prop', arr: [ 1, 2, 3 ] }} // {\n" +
+                "                                                            //   some: 'prop',\n" +
+                "                                                            //   arr: [\n" +
+                "                                                            //     1,\n" +
+                "                                                            //     2,\n" +
+                "                                                            //     3 // should equal 4\n" +
+                "                                                            //   ]\n" +
+                "                                                            // }\n" +
                 '  ></ClassComponent>\n' +
                 '</div>')
         });

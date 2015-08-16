@@ -262,7 +262,13 @@ function diffElements(actual, expected, output, diff, inspect, equal, options) {
                 } else {
                     writeProp(output, propName, actualProps[propName], inspect);
                     output.sp().annotationBlock(function () {
-                        this.error('should equal').sp().append(inspect(expectedProps[propName]));
+                        var diffResults = diff(actualProps[propName], expectedProps[propName]);
+                        if (diffResults) {
+                            this.append(diffResults.diff);
+                        } else {
+                            this.error('should equal').sp().append(inspect(expectedProps[propName]));
+                        }
+
                     }).nl();
                     canContinueLine = false;
                 }
