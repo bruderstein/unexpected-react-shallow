@@ -717,6 +717,45 @@ describe('unexpected-react-shallow', () => {
                 </div>);
         });
 
+        it('highlights string break-down changes in a multi-text child with `exactly`', function () {
+
+            var content = 'test';
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        some text {content}
+                    </ClassComponent>
+                </div>
+            );
+
+            expect(() => testExpect(renderer, 'to have exactly rendered',
+                <div>
+                    <ClassComponent>
+                        some text test
+                    </ClassComponent>
+                </div>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    some text test\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                'to have exactly rendered\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    some text test\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                '\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    -some text \n' +
+                '    +some text test\n' +
+                '    test // should be removed\n' +
+                '  </ClassComponent>\n' +
+                '</div>');
+        });
+
         it('highlights changed in a multi-text child', function () {
 
             var content = 'foo';
@@ -738,23 +777,20 @@ describe('unexpected-react-shallow', () => {
                 'expected\n' +
                 '<div>\n' +
                 '  <ClassComponent>\n' +
-                '    some text \n' +
-                '    foo\n' +
+                '    some text foo\n' +
                 '  </ClassComponent>\n' +
                 '</div>\n' +
                 'to have rendered\n' +
                 '<div>\n' +
                 '  <ClassComponent>\n' +
-                '    some text \n' +
-                '    bar\n' +
+                '    some text bar\n' +
                 '  </ClassComponent>\n' +
                 '</div>\n' +
                 '\n' +
                 '<div>\n' +
                 '  <ClassComponent>\n' +
-                '    some text \n' +
-                '    -foo\n' +
-                '    +bar\n' +
+                '    -some text foo\n' +
+                '    +some text bar\n' +
                 '  </ClassComponent>\n' +
                 '</div>');
         });
@@ -856,5 +892,4 @@ describe('unexpected-react-shallow', () => {
                 '</div>');
         });
     });
-
 });
