@@ -198,14 +198,6 @@ function diffChildren(actual, expected, output, diff, inspect, equal, options) {
                 var valueDiff = diffElements(diffItem.value, diffItem.expected, output.clone(), diff, inspect, equal, options);
                 if (valueDiff && valueDiff.inline) {
                     this.block(valueDiff.diff);
-                } else if (valueDiff) {
-                    this.block(inspect(diffItem.value).sp()).annotationBlock(function () {
-                        this.shouldEqualError(diffItem.expected, inspect).nl().append(valueDiff.diff);
-                    });
-                } else {
-                    this.block(inspect(diffItem.value).sp()).annotationBlock(function () {
-                        this.shouldEqualError(diffItem.expected, inspect);
-                    });
                 }
             }
         }).nl(index < changes.length - 1 ? 1 : 0);
@@ -324,13 +316,7 @@ module.exports = {
 
             inspect(value, depth, output, inspect) {
                 output.append(inspect(value.getRenderOutput()));
-            },
-
-            diff(actual, expected, output, diff, inspect, equal) {
-                return diff(actual.getRenderOutput(), expected);
             }
-
-
     });
 
         expect.addType({
@@ -380,12 +366,10 @@ module.exports = {
 
             var exactly = this.flags.exactly;
 
-
             expect.withError(function () {
                 return compareElements(subject, renderOutput, expect, {
                     exactly: exactly
                 });
-                // return expect(subject, 'to equal', renderOutput);
             }, function (e) {
                 return expect.fail({
                     diff : function (output, diff, inspect, equal) {
