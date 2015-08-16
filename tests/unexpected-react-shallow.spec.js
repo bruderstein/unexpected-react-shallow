@@ -677,6 +677,39 @@ describe('unexpected-react-shallow', () => {
                 '  ></ClassComponent>\n' +
                 '</div>')
         });
+
+    });
+
+    describe('`to equal`', function () {
+
+        it('matches renderer output to a component tree', function () {
+
+            renderer.render(<div><ClassComponent className="foo" /></div>);
+            testExpect(renderer.getRenderOutput(), 'to equal', <div><ClassComponent className="foo" /></div>);
+        });
+
+        it('outputs a diff when the expected is different', function () {
+
+            renderer.render(<div><ClassComponent className="foo" /></div>);
+
+            expect(() => testExpect(renderer.getRenderOutput(),
+                'to equal', <div><ClassComponent className="foobar" /></div>),
+            'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent className="foo" />\n' +
+                '</div>\n' +
+                'to equal\n' +
+                '<div>\n' +
+                '  <ClassComponent className="foobar" />\n' +
+                '</div>\n' +
+                '\n' +
+                '<div>\n' +
+                '  <ClassComponent className="foo" // -foo\n' +
+                '                                  // +foobar\n' +
+                '  ></ClassComponent>\n' +
+                '</div>');
+        })
     });
 
 });
