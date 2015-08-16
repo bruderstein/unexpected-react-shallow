@@ -9,6 +9,14 @@ var ES5Component = React.createClass({
     render() { return null;}
 });
 
+function createNoNameComponent() {
+    return React.createClass({
+        render() { return null;}
+    });
+}
+
+var NoNameComponent = createNoNameComponent();
+
 class ClassComponent extends React.Component {
     render() { return null;}
 }
@@ -167,6 +175,40 @@ describe('unexpected-react-shallow', () => {
                 '</div>\n' +
                 'to equal 1');
         });
+
+        it('outputs a directly created custom ReactElement', function () {
+
+            expect(() => testExpect(<ClassComponent className="foo" />, 'to equal', 1),
+                'to throw', 'expected <ClassComponent className="foo" /> to equal 1');
+        });
+
+        it('outputs a directly created native ReactElement', function () {
+
+            expect(() => testExpect(<div className="foo" />, 'to equal', 1),
+                'to throw', 'expected <div className="foo" /> to equal 1');
+        });
+
+        it('outputs a directly created inline element (React 0.14)', function () {
+
+            var inlineElement = {
+                type: 'div',
+                props: {
+                    className: 'foo'
+                },
+                key: null,
+                ref: null
+            };
+
+            expect(() => testExpect(inlineElement, 'to equal', 1), 'to throw',
+            'expected <div className="foo" /> to equal 1');
+        });
+
+        it('outputs a component with no-display-name', function () {
+
+            expect(() => testExpect(<NoNameComponent className="foo" />, 'to equal', 1), 'to throw',
+                'expected <no-display-name className="foo" /> to equal 1');
+
+        })
     });
 
     describe('diff', () => {
@@ -867,7 +909,99 @@ describe('unexpected-react-shallow', () => {
                 '  </ClassComponent>\n' +
                 '</div>');
         });
+
+        it('highlights removals in multi-string content', function () {
+            var content = 'test';
+
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        some text
+                    </ClassComponent>
+                </div>
+            );
+            expect(() => testExpect(renderer, 'to have exactly rendered',
+                <div>
+                    <ClassComponent>
+                        some text {content}
+                    </ClassComponent>
+                </div>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    some text\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                'to have exactly rendered\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    some text test\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                '\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    -some text\n' +
+                '    +some text \n' +
+                '    // missing test\n' +
+                '  </ClassComponent>\n' +
+                '</div>');
+        });
+
+        it('highlights removals in complex content with exactly', function () {
+            var content = 'test';
+
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        <div className="one" />
+                        <ES5Component className="three" />
+                        <span>foo</span>
+                    </ClassComponent>
+                </div>
+            );
+
+            expect(() => testExpect(renderer, 'to have exactly rendered',
+                <div>
+                    <ClassComponent>
+                        <div className="one" />
+                        <span>foo</span>
+                    </ClassComponent>
+                </div>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    <div className="one" />\n' +
+                '    <ES5Component className="three" />\n' +
+                '    <span>\n' +
+                '      foo\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                'to have exactly rendered\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    <div className="one" />\n' +
+                '    <span>\n' +
+                '      foo\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                '\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    <div className="one" />\n' +
+                '    <ES5Component className="three" /> // should be removed\n' +
+                '    <span>\n' +
+                '      foo\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>');
+        });
+
+
     });
+
 
     describe('`to equal`', function () {
 
@@ -1202,6 +1336,65 @@ describe('unexpected-react-shallow', () => {
                 '</div>\n' +
                 'to contain\n' +
                 '<ClassComponent className="candidate">\n' +
+                '  <span>\n' +
+                '    foo\n' +
+                '  </span>\n' +
+                '</ClassComponent>');
+        });
+
+        it('matches even with removals in complex content without `exactly`', function () {
+
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        <div className="one" />
+                        <ES5Component className="three" />
+                        <span>foo</span>
+                    </ClassComponent>
+                </div>
+            );
+
+            testExpect(renderer, 'to contain',
+                    <ClassComponent>
+                        <div className="one" />
+                        <span>foo</span>
+                    </ClassComponent>
+            );
+        });
+
+        it('does not match with a removal and an addition in complex content with `exactly`', function () {
+
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        <div className="one" />
+                        <ES5Component className="three" />
+                        <span>foo</span>
+                    </ClassComponent>
+                </div>
+            );
+
+            expect(() => testExpect(renderer, 'to contain exactly',
+                <ClassComponent>
+                    <div className="one" />
+                    <ClassComponent className="three" />
+                    <span>foo</span>
+                </ClassComponent>
+            ), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    <div className="one" />\n' +
+                '    <ES5Component className="three" />\n' +
+                '    <span>\n' +
+                '      foo\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                'to contain exactly\n' +
+                '<ClassComponent>\n' +
+                '  <div className="one" />\n' +
+                '  <ClassComponent className="three" />\n' +
                 '  <span>\n' +
                 '    foo\n' +
                 '  </span>\n' +

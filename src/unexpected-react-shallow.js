@@ -2,27 +2,23 @@ var React = require('react/addons');
 var ArrayChanges = require('array-changes');
 
 function getElementName(element) {
-    if (element.type) {
-        return element.type.displayName || element.type.name || element.tagName || element.type || 'no-display-name';
+    if (typeof element.type === 'string') {
+        return element.type;
     }
-    if (element.constructor) {
 
-        return element.constructor.displayName || element.constructor.name || element.tagName || 'no-display-name';
-    }
-    return 'no-display-name';
+    return element.type.displayName || element.type.name || 'no-display-name';
 }
 
 function getProps(element) {
+    var realProps = {};
     if (element.props) {
-        var realProps = {};
         for(var key in element.props) {
             if (key !== 'children') {
                 realProps[key] = element.props[key];
             }
         }
-        return realProps;
     }
-    return null;
+    return realProps;
 }
 
 function writeProps(output, props) {
@@ -394,7 +390,11 @@ module.exports = {
             name: 'ReactElement',
 
             identify: function (value) {
-                return React.isValidElement(value);
+                return React.isValidElement(value) || (typeof value === 'object' &&
+                    typeof value.type === 'string' &&
+                    value.hasOwnProperty('props') &&
+                    value.hasOwnProperty('ref') &&
+                    value.hasOwnProperty('key'));
             },
 
             inspect: function (value, depth, output, inspect) {
