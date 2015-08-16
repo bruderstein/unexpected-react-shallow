@@ -37,10 +37,23 @@ function writeProps(output, props) {
     }
 }
 
-function writeProp(output, propName, value) {
+function writeProp(output, propName, value, inspect) {
 
     output.prismAttrName(propName)
         .prismPunctuation('=');
+    if (inspect) {
+        if (typeof (value) === 'string') {
+
+            output.prismPunctuation('"');
+            output.append(value);
+            output.prismPunctuation('"');
+        } else {
+            output.prismPunctuation('{');
+            output.append(inspect(value));
+            output.prismPunctuation('}');
+        }
+        return;
+    }
 
     switch (typeof value) {
         case 'number':
@@ -242,21 +255,20 @@ function diffElements(actual, expected, output, diff, inspect, equal, options) {
         var expectedProps = getProps(expected);
         Object.keys(actualProps).forEach(function (propName) {
             output.sp(canContinueLine ? 1 : 2 + getElementName(actual).length);
-            writeProp(output, propName, actualProps[propName]);
             if (propName in expectedProps) {
                 if (actualProps[propName] === expectedProps[propName]) {
+                    writeProp(output, propName, actualProps[propName]);
                     canContinueLine = true;
                 } else {
+                    writeProp(output, propName, actualProps[propName], inspect);
                     output.sp().annotationBlock(function () {
-                        if (typeof actualProps[propName] === 'object') {
-                            this.append(inspect(actualProps[propName])).sp();
-                        }
                         this.error('should equal').sp().append(inspect(expectedProps[propName]));
                     }).nl();
                     canContinueLine = false;
                 }
                 delete expectedProps[propName];
             } else if (options.exactly) {
+                writeProp(output, propName, actualProps[propName]);
                 output.sp().annotationBlock(function () {
                     this.error('should be removed');
                 }).nl();
@@ -325,28 +337,28 @@ module.exports = {
             inspect: function (value, depth, output, inspect) {
 
                 output
-                    .text('<')
-                    .text(getElementName(value));
+                    .prismPunctuation('<')
+                    .prismTag(getElementName(value));
 
                 writeProps(output, value.props);
 
                 if (React.Children.count(value.props.children)) {
-                    output.text('>');
+                    output.prismPunctuation('>');
                     output.nl().indentLines();
                     React.Children.forEach(value.props.children, child => {
 
                         if (typeof child === 'string') {
-                            output.i().text(child).nl();
+                            output.i().prismString(child).nl();
                         } else {
                             output.i().block(inspect(child)).nl();
                         }
                     });
                     output.outdentLines();
                     output.i()
-                        .text('</').text(getElementName(value)).text('>');
+                        .prismPunctuation('</').prismTag(getElementName(value)).prismPunctuation('>');
 
                 } else {
-                    output.text(' />')
+                    output.prismPunctuation(' />')
                 }
             },
 

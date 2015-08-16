@@ -663,7 +663,7 @@ describe('unexpected-react-shallow', () => {
                 '</div>\n' +
                 '\n' +
                 '<div>\n' +
-                "  <ClassComponent test={...} // { some: 'prop', arr: [ 1, 2, 3 ] } should equal { some: 'prop', arr: [ 1, 2, 4 ] }\n" +
+                "  <ClassComponent test={{ some: 'prop', arr: [ 1, 2, 3 ] }} // should equal { some: 'prop', arr: [ 1, 2, 4 ] }\n" +
                 '  ></ClassComponent>\n' +
                 '</div>')
         });
