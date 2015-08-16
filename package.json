@@ -24,5 +24,10 @@
     "magicpen-prism": "^2.2.0"
   },
   "repository": "bruderstein/unexpected-react-shallow.git",
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "license": "MIT"
 }
