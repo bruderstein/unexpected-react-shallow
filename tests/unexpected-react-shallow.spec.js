@@ -11,6 +11,7 @@ var ES5Component = React.createClass({
 
 function createNoNameComponent() {
     return React.createClass({
+        displayName: '',
         render() { return null;}
     });
 }
@@ -18,7 +19,7 @@ function createNoNameComponent() {
 var NoNameComponent = createNoNameComponent();
 
 class ClassComponent extends React.Component {
-    render() { return null;}
+    render() { return <div className="class-component">{this.props.content}</div>; }
 }
 
 
@@ -102,7 +103,7 @@ describe('unexpected-react-shallow', () => {
 
         it('outputs a tag element with an function prop', () => {
 
-            var fn = function (a, b) { return a + b};
+            var fn = function (a, b) { return a + b; };
             renderer.render(<div onClick={fn} />);
             expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
                 'expected <div onClick={ function(){...} } /> to equal 1');
@@ -130,7 +131,7 @@ describe('unexpected-react-shallow', () => {
                 '    some content\n' +
                 '  </ES5Component>\n' +
                 '</div>\n' +
-                'to equal 1')
+                'to equal 1');
         });
 
         it('outputs an ES5 class component props and children', () => {
@@ -208,7 +209,7 @@ describe('unexpected-react-shallow', () => {
             expect(() => testExpect(<NoNameComponent className="foo" />, 'to equal', 1), 'to throw',
                 'expected <no-display-name className="foo" /> to equal 1');
 
-        })
+        });
     });
 
     describe('diff', () => {
@@ -335,6 +336,24 @@ describe('unexpected-react-shallow', () => {
                         <span className="bar">foo</span>
                     </ClassComponent>
                 </div>);
+        });
+
+        it('matches content rendered as a number', function () {
+
+            renderer.render(<ClassComponent content={0} />);
+            testExpect(renderer, 'to have rendered', <div className="class-component">0</div>);
+        });
+
+        it('matches content as undefined', function () {
+
+            renderer.render(<ClassComponent content={undefined} />);
+            testExpect(renderer, 'to have rendered', <div className="class-component"></div>);
+        });
+
+        it('matches content as null', function () {
+
+            renderer.render(<ClassComponent content={null} />);
+            testExpect(renderer, 'to have rendered', <div className="class-component"></div>);
         });
 
         it('highlights diffs on a nested custom component', function () {
@@ -718,14 +737,14 @@ describe('unexpected-react-shallow', () => {
                 '<div>\n' +
                 "  <ClassComponent test={{ some: 'prop', arr: [ 1, 2, 3 ] }} // {\n" +
                 "                                                            //   some: 'prop',\n" +
-                "                                                            //   arr: [\n" +
-                "                                                            //     1,\n" +
-                "                                                            //     2,\n" +
-                "                                                            //     3 // should equal 4\n" +
-                "                                                            //   ]\n" +
-                "                                                            // }\n" +
+                '                                                            //   arr: [\n' +
+                '                                                            //     1,\n' +
+                '                                                            //     2,\n' +
+                '                                                            //     3 // should equal 4\n' +
+                '                                                            //   ]\n' +
+                '                                                            // }\n' +
                 '  ></ClassComponent>\n' +
-                '</div>')
+                '</div>');
         });
 
         it('matches a multi-text child', function () {

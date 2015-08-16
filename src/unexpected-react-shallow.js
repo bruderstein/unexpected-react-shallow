@@ -95,7 +95,12 @@ function elementsMatch(actual, expected, equal, options) {
         return actual === expected;
     }
 
-    if (typeof actual !== typeof expected) {   // Fundamentally different e.g. string vs ReactElement
+    if ((typeof actual === 'string' || typeof actual === 'number') &&
+        (typeof expected === 'string' || typeof expected === 'number')) {
+        return '' + actual === '' + expected;
+    }
+
+    if (typeof actual !== typeof expected) { // Fundamentally different e.g. string vs ReactElement
         return false;
     }
 
@@ -114,8 +119,8 @@ function elementsMatch(actual, expected, equal, options) {
         return false;
     }
 
-    if (expected.props.children) {
-        if (!actual.props.children) {
+    if (React.Children.count(expected.props.children)) {
+        if (React.Children.count(actual.props.children) === 0) {
             return false;
         }
 
@@ -221,7 +226,8 @@ function diffChildren(actual, expected, output, diff, inspect, equal, options) {
 
                 function (a, b) {
                     // Figure out whether a and b are the same element so they can be diffed inline.
-                    if (typeof a === 'string' && typeof b === 'string') {
+                    if ((typeof a === 'string' || typeof a === 'number' || typeof a === 'undefined') &&
+                       (typeof b === 'string' || typeof b === 'number' || typeof b === 'undefined')) {
                         return true;
                     }
 
@@ -247,14 +253,16 @@ function diffChildren(actual, expected, output, diff, inspect, equal, options) {
                 });
             } else if (type === 'remove') {
                 if (typeof diffItem.value === 'string') {
-                    this.block(function () { this.text(diffItem.value).sp().error('// should be removed') });
+                    this.block(function () {
+                        this.text(diffItem.value).sp().error('// should be removed');
+                    });
                 } else {
                     this.block(inspect(diffItem.value).sp().error('// should be removed'));
                 }
             } else if (type === 'equal') {
                 if (typeof diffItem.value === 'string') {
                     this.block(function () {
-                        this.text(diffItem.value)
+                        this.text(diffItem.value);
                     });
                 } else {
                     this.block(inspect(diffItem.value));
@@ -289,8 +297,9 @@ function diffElements(actual, expected, output, diff, inspect, equal, options) {
         inline: true
     };
 
-    if (typeof actual === 'string' && typeof expected === 'string') {
-        return diff(actual, expected);
+    if ((typeof actual === 'string' || typeof actual === 'number') &&
+            (typeof expected === 'string' || typeof expected === 'number')) {
+        return diff('' + actual, '' + expected);
     }
     var emptyElements = (!actual.props || React.Children.count(actual.props.children) === 0) &&
         (!expected.props || React.Children.count(expected.props.children) === 0);
@@ -391,10 +400,12 @@ module.exports = {
 
             identify: function (value) {
                 return React.isValidElement(value) || (typeof value === 'object' &&
-                    typeof value.type === 'string' &&
-                    value.hasOwnProperty('props') &&
-                    value.hasOwnProperty('ref') &&
-                    value.hasOwnProperty('key'));
+                    value !== null &&
+                        typeof value.type === 'string' &&
+                        value.hasOwnProperty('props') &&
+                        value.hasOwnProperty('ref') &&
+                        value.hasOwnProperty('key')
+                    );
             },
 
             inspect: function (value, depth, output, inspect) {
@@ -426,7 +437,7 @@ module.exports = {
                         .prismPunctuation('</').prismTag(getElementName(value)).prismPunctuation('>');
 
                 } else {
-                    output.prismPunctuation(' />')
+                    output.prismPunctuation(' />');
                 }
             },
 
@@ -454,7 +465,7 @@ module.exports = {
                         });
                     }
                 });
-            })
+            });
         });
 
         expect.addAssertion('ReactElement', 'to contain', function (expect, subject, expected) {
