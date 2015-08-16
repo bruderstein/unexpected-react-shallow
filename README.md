@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/bruderstein/unexpected-react-shallow.svg?branch=master)](https://travis-ci.org/bruderstein/unexpected-react-shallow)
+[![Coverage Status](https://coveralls.io/repos/bruderstein/unexpected-react-shallow/badge.svg?branch=&service=github)](https://coveralls.io/github/bruderstein/unexpected-react-shallow?branch=master)
+
 # unexpected-react-shallow
 
 A port of the excellent [unexpected-dom](https://github.com/munter/unexpected-dom) to support 
