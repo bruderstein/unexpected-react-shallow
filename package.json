@@ -4,12 +4,14 @@
   "scripts": {
     "cover": "istanbul cover _mocha -- -u exports --compilers js:babel/register tests",
     "lint": "eslint .",
-    "test": "mocha --compilers js:babel/register tests"
+    "test": "mocha --compilers js:babel/register tests",
+    "coveralls":"istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- --compilers js:babel/register tests && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage || true"
   },
   "main": "src/unexpected-react-shallow.js",
   "devDependencies": {
     "babel": "^5.8.21",
     "babel-eslint": "^4.0.7",
+    "coveralls": "^2.11.4",
     "eslint": "^1.1.0",
     "eslint-plugin-react": "^3.2.3",
     "istanbul": "^0.3.17",
