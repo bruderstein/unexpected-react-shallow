@@ -7,4 +7,4 @@ node_js:
     - "iojs-v2.5.0"
 script:
     - npm test
-    - npm coveralls
+    - npm run coveralls

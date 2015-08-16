@@ -23,5 +23,6 @@
     "array-changes": "^1.0.3",
     "magicpen-prism": "^2.2.0"
   },
+  "repository": "bruderstein/unexpected-react-shallow.git",
   "license": "MIT"
 }
