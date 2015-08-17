@@ -21,7 +21,13 @@ expect(renderer, 'to have rendered',
 ```
 
 And you receive a beautiful error message 
+
 ![error message](https://raw.githubusercontent.com/bruderstein/unexpected-react-shallow/master/docs/error_diff.png)
+
+Object props are also diffed, when they don't match
+
+![object prop  diff](https://raw.githubusercontent.com/bruderstein/unexpected-react-shallow/master/docs/diff_prop.png)
+
 
 # Status
 
