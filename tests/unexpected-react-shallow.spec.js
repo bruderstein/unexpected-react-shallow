@@ -1151,6 +1151,47 @@ describe('unexpected-react-shallow', () => {
             testExpect(renderer, 'to contain', <ClassComponent className="foo" />);
         });
 
+        it('finds a string content', function () {
+            renderer.render(<div><span>some content one</span><span>some content two</span></div>);
+            testExpect(renderer, 'to contain', 'some content two');
+        });
+
+        it('does not find a string that does not exist', function () {
+
+            renderer.render(<div><span>some content one</span><span>some content two</span></div>);
+            expect(() => testExpect(renderer, 'to contain', 'some content three'), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <span>\n' +
+                '    some content one\n'+
+                '  </span>\n' +
+                '  <span>\n' +
+                '    some content two\n'+
+                '  </span>\n' +
+                '</div>\n' +
+                "to contain 'some content three'");
+        });
+
+        it('does not find a partial string', function () {
+
+            // This behaviour may change in a major version bump at some point.
+            // Currently it's quite difficult to implement sensibly, as it would mean that searching
+            // for an element with text content would also match if a partial string matched.
+            // Maybe we allow a regex... :)
+            renderer.render(<div><span>some content one</span><span>some content two</span></div>);
+            expect(() => testExpect(renderer, 'to contain', 'some content'), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <span>\n' +
+                '    some content one\n'+
+                '  </span>\n' +
+                '  <span>\n' +
+                '    some content two\n'+
+                '  </span>\n' +
+                '</div>\n' +
+                "to contain 'some content'");
+        });
+
         it('finds a match in an array of children', function () {
 
             renderer.render(
