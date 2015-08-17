@@ -76,11 +76,28 @@ function writeProp(output, propName, value, inspect) {
     }
 }
 
+function isSimpleType(value) {
+    var type = typeof value;
+    return type === 'string' ||
+        type === 'number' ||
+        type === 'boolean' ||
+        type === 'undefined' ||
+        value === null;
+}
+
+function convertValueTypeToString(value) {
+    if (value === null || value === undefined) {
+        return '';
+    }
+
+    return '' + value;
+}
+
 function concatenateStringChildren(accum, value) {
-    if (typeof value === 'string' && accum.length &&
-        typeof accum[accum.length - 1] === 'string')
+    if (isSimpleType(value) && accum.length &&
+        isSimpleType(accum[accum.length - 1]))
     {
-        accum[accum.length - 1] = accum[accum.length - 1] + value;
+        accum[accum.length - 1] = convertValueTypeToString(accum[accum.length - 1]) + convertValueTypeToString(value);
         return accum;
     }
     accum.push(value);

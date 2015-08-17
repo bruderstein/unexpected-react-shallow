@@ -791,6 +791,83 @@ describe('unexpected-react-shallow', () => {
                 </div>);
         });
 
+        it('matches a multi-text child including a number to a single text child without exactly', function () {
+
+            var content = 5;
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        some {content} value
+                    </ClassComponent>
+                </div>
+            );
+
+            testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent>
+                        some 5 value
+                    </ClassComponent>
+                </div>);
+        });
+
+        it('matches a multi-text child including a null to a single text child without exactly', function () {
+
+            var content = null;
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        some {content} value
+                    </ClassComponent>
+                </div>
+            );
+
+            testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent>
+                        some  value
+                    </ClassComponent>
+                </div>);
+        });
+
+        it('matches a multi-text child including an undefined to a single text child without exactly', function () {
+
+            var content = undefined;
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        some {content} value
+                    </ClassComponent>
+                </div>
+            );
+
+            testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent>
+                        some  value
+                    </ClassComponent>
+                </div>);
+        });
+
+        it('matches a multi-text child including a boolean to a single text child without exactly', function () {
+
+            var content = true;
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        some {content} value
+                    </ClassComponent>
+                </div>
+            );
+
+            // An inline boolean is converted to null, so this "just works"
+            testExpect(renderer, 'to have rendered',
+                <div>
+                    <ClassComponent>
+                        some  value
+                    </ClassComponent>
+                </div>);
+        });
+
         it('highlights string break-down changes in a multi-text child with `exactly`', function () {
 
             var content = 'test';
