@@ -125,9 +125,9 @@ function elementsMatch(actual, expected, equal, options) {
         }
 
         var actualChildren = [];
-        React.Children.forEach(actual.props.children, child => actualChildren.push(child));
+        React.Children.forEach(actual.props.children, function (child) { actualChildren.push(child); });
         var expectedChildren = [];
-        React.Children.forEach(expected.props.children, child => expectedChildren.push(child));
+        React.Children.forEach(expected.props.children, function (child) { expectedChildren.push(child); });
 
         if (options && !options.exactly) {
 
@@ -146,7 +146,7 @@ function elementsMatch(actual, expected, equal, options) {
             });
 
         var arrayMatches = true;
-        arrayDiffs.forEach(diffItem => {
+        arrayDiffs.forEach(function (diffItem) {
             switch (diffItem.type) {
                 case 'equal':
                     return;
@@ -187,7 +187,7 @@ function findElementIn(haystack, needle, expect, options) {
     var found = false;
     if (haystack.props && haystack.props.children) {
 
-        React.Children.forEach(haystack.props.children, child => {
+        React.Children.forEach(haystack.props.children, function (child) {
 
             if (elementsMatch(child, needle, expect.equal.bind(expect), options)) {
                 found = true;
@@ -210,9 +210,9 @@ function diffChildren(actual, expected, output, diff, inspect, equal, options) {
     }
 
     var actualChildren = [];
-    React.Children.forEach(actual, child => actualChildren.push(child));
+    React.Children.forEach(actual, function (child) { actualChildren.push(child); });
     var expectedChildren = [];
-    React.Children.forEach(expected, child => expectedChildren.push(child));
+    React.Children.forEach(expected, function (child) { expectedChildren.push(child); });
 
     if (options && !options.exactly) {
         actualChildren = actualChildren.reduce(concatenateStringChildren, []);
@@ -283,7 +283,7 @@ function propsMatch(actual, expected, equal, options) {
         return equal(actual, expected);
     }
     var matching = true;
-    Object.keys(expected).forEach(key => {
+    Object.keys(expected).forEach(function (key) {
         if (!equal(actual[key], expected[key])) {
             matching = false;
         }
@@ -421,10 +421,10 @@ module.exports = {
                     output.nl().indentLines();
 
                     var children = [];
-                    React.Children.forEach(value.props.children, child => children.push(child));
+                    React.Children.forEach(value.props.children, function (child) { children.push(child); });
                     children = children.reduce(concatenateStringChildren, []);
 
-                    children.forEach(child => {
+                    children.forEach(function (child) {
 
                         if (typeof child === 'string') {
                             output.i().prismString(child).nl();
