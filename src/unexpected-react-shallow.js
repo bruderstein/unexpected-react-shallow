@@ -384,13 +384,13 @@ module.exports = {
         expect.addType({
             name: 'ReactShallowRenderer',
             base: 'object',
-            identify(value) {
+            identify: function(value) {
                 return typeof value === 'object' &&
                     value !== null &&
                     typeof value.getRenderOutput === 'function';
             },
 
-            inspect(value, depth, output, inspect) {
+            inspect: function(value, depth, output, inspect) {
                 output.append(inspect(value.getRenderOutput()));
             }
     });
@@ -441,10 +441,10 @@ module.exports = {
                 }
             },
 
-            diff(actual, expected, output, diff, inspect, equal) {
+            diff: function(actual, expected, output, diff, inspect, equal) {
                 return diffElements(actual, expected, output, diff, inspect, equal);
             },
-            equal(a, b, equal) {
+            equal: function(a, b, equal) {
                 return elementsMatch(a, b, equal, { exactly: true });
             }
         });
