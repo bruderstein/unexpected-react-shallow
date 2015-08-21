@@ -1172,6 +1172,8 @@ describe('unexpected-react-shallow', () => {
                 "to contain 'some content three'");
         });
 
+
+
         it('does not find a partial string', function () {
 
             // This behaviour may change in a major version bump at some point.
@@ -1190,6 +1192,43 @@ describe('unexpected-react-shallow', () => {
                 '  </span>\n' +
                 '</div>\n' +
                 "to contain 'some content'");
+        });
+
+        it('finds a multi-part string', function () {
+
+            renderer.render(<span>button clicked {5} times</span>);
+            testExpect(renderer, 'to contain', 'button clicked 5 times');
+        });
+
+        it('does not find a multi-part string when `exactly` is used', function () {
+
+            renderer.render(<span>button clicked {5} times</span>);
+            expect(() => testExpect(renderer, 'to contain exactly', 'button clicked 5 times'),
+                'to throw',
+                'expected\n' +
+                '<span>\n' +
+                '  button clicked 5 times\n' +
+                '</span>\n' +
+                "to contain exactly 'button clicked 5 times'");
+        });
+
+        it('does not find a part of a multi-part string', function () {
+
+            // See the 'does not find a partial string' test above
+            // This behaviour may change
+            renderer.render(<span>button clicked {5} times</span>);
+            expect(() => testExpect(renderer, 'to contain', 'button clicked '), 'to throw',
+                'expected\n' +
+                '<span>\n' +
+                '  button clicked 5 times\n' +
+                '</span>\n' +
+                "to contain 'button clicked '");
+        });
+
+        it('finds part of a multi-part string when exactly is used', function () {
+
+            renderer.render(<span>button clicked {5} times</span>);
+            testExpect(renderer, 'to contain exactly', 'button clicked ');
         });
 
         it('finds a match in an array of children', function () {

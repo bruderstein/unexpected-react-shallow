@@ -104,7 +104,14 @@ function concatenateStringChildren(accum, value) {
     return accum;
 }
 
-
+function getChildrenArray(children, options) {
+    var childrenArray = [];
+    React.Children.forEach(children, function (child) { childrenArray.push(child); });
+    if (options.normalize) {
+        return childrenArray.reduce(concatenateStringChildren, []);
+    }
+    return childrenArray;
+}
 
 function elementsMatch(actual, expected, equal, options) {
 
@@ -141,16 +148,13 @@ function elementsMatch(actual, expected, equal, options) {
             return false;
         }
 
-        var actualChildren = [];
-        React.Children.forEach(actual.props.children, function (child) { actualChildren.push(child); });
-        var expectedChildren = [];
-        React.Children.forEach(expected.props.children, function (child) { expectedChildren.push(child); });
-
-        if (options && !options.exactly) {
-
-            actualChildren = actualChildren.reduce(concatenateStringChildren, []);
-            expectedChildren = expectedChildren.reduce(concatenateStringChildren, []);
-        }
+        var shouldNormalize = !options.exactly;
+        var actualChildren = getChildrenArray(actual.props.children, {
+            normalize: shouldNormalize
+        });
+        var expectedChildren = getChildrenArray(expected.props.children, {
+            normalize: shouldNormalize
+        });
 
         var arrayDiffs = ArrayChanges(
             actualChildren,
@@ -202,9 +206,15 @@ function findElementIn(haystack, needle, expect, options) {
     }
 
     var found = false;
+    var shouldNormalize = !options.exactly;
+
     if (haystack.props && haystack.props.children) {
 
-        React.Children.forEach(haystack.props.children, function (child) {
+        var children = getChildrenArray(haystack.props.children, {
+            normalize: shouldNormalize
+        });
+
+        children.forEach(function (child) {
 
             if (elementsMatch(child, needle, expect.equal.bind(expect), options)) {
                 found = true;
