@@ -94,5 +94,14 @@ exports.elementsMatch = internals.elementsMatch = function elementsMatch(actual,
     }
     return true;
 
-}
+};
+
+
+exports.assertElementsMatch = function assertElementsMatch(actual, expected, expect, options) {
+
+    var result  = internals.elementsMatch(actual, expected, expect.equal.bind(expect), options);
+    if (!result) {
+        return expect.fail('elements are not equal');
+    }
+};
 
