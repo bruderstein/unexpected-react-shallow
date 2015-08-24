@@ -1,199 +1,14 @@
 var React = require('react/addons');
 var ArrayChanges = require('array-changes');
 
-function getElementName(element) {
-    if (typeof element.type === 'string') {
-        return element.type;
-    }
+var Element = require('./lib/element');
+var Write = require('./lib/write');
+var Equality = require('./lib/equality');
 
-    return element.type.displayName || element.type.name || 'no-display-name';
-}
-
-function getProps(element) {
-    var realProps = {};
-    if (element.props) {
-        for(var key in element.props) {
-            if (key !== 'children') {
-                realProps[key] = element.props[key];
-            }
-        }
-    }
-    return realProps;
-}
-
-function writeProps(output, props) {
-    if (props) {
-        Object.keys(props).forEach(function (prop) {
-            if (prop === 'children') {
-                return;
-            }
-            output.text(' ');
-            writeProp(output, prop, props[prop]);
-        });
-    }
-}
-
-function writeProp(output, propName, value, inspect) {
-
-    output.prismAttrName(propName)
-        .prismPunctuation('=');
-    if (inspect) {
-        if (typeof (value) === 'string') {
-
-            output.prismPunctuation('"');
-            output.append(value);
-            output.prismPunctuation('"');
-        } else {
-            output.prismPunctuation('{');
-            output.append(inspect(value));
-            output.prismPunctuation('}');
-        }
-        return;
-    }
-
-    switch (typeof value) {
-        case 'number':
-        case 'boolean':
-        case 'undefined':
-            output.text('{')
-                .text(value)
-                .text('}');
-            break;
-        case 'string':
-            output.prismPunctuation('"').prismAttrValue(value).prismPunctuation('"');
-            break;
-
-        case 'object':
-            if (value === null) {
-                output.prismPunctuation('{').prismAttrValue('null').prismPunctuation('}');
-            } else {
-                output.prismPunctuation('{').prismAttrValue('...').prismPunctuation('}');
-            }
-            break;
-        case 'function':
-            output.prismPunctuation('{').prismAttrValue(' function(){...} ').prismPunctuation('}');
-            break;
-    }
-}
-
-function isSimpleType(value) {
-    var type = typeof value;
-    return type === 'string' ||
-        type === 'number' ||
-        type === 'boolean' ||
-        type === 'undefined' ||
-        value === null;
-}
-
-function convertValueTypeToString(value) {
-    if (value === null || value === undefined) {
-        return '';
-    }
-
-    return '' + value;
-}
-
-function concatenateStringChildren(accum, value) {
-    if (isSimpleType(value) && accum.length &&
-        isSimpleType(accum[accum.length - 1]))
-    {
-        accum[accum.length - 1] = convertValueTypeToString(accum[accum.length - 1]) + convertValueTypeToString(value);
-        return accum;
-    }
-    accum.push(value);
-    return accum;
-}
-
-function getChildrenArray(children, options) {
-    var childrenArray = [];
-    React.Children.forEach(children, function (child) { childrenArray.push(child); });
-    if (options.normalize) {
-        return childrenArray.reduce(concatenateStringChildren, []);
-    }
-    return childrenArray;
-}
-
-function elementsMatch(actual, expected, equal, options) {
-
-    if (typeof actual === 'string' && typeof expected === 'string') {
-        return actual === expected;
-    }
-
-    if ((typeof actual === 'string' || typeof actual === 'number') &&
-        (typeof expected === 'string' || typeof expected === 'number')) {
-        return '' + actual === '' + expected;
-    }
-
-    if (typeof actual !== typeof expected) { // Fundamentally different e.g. string vs ReactElement
-        return false;
-    }
-
-    if (getElementName(actual) !== getElementName(expected)) {
-        return false;
-    }
-
-    if (!propsMatch(getProps(actual), getProps(expected), equal, options)) {
-        return false;
-    }
-
-    // For 'exactly', we can just check the count of the actual children matches,
-    // string children will not be concatenated in this mode, and serves to also check
-    // the case that the expected does not have children, but the actual does (ignored when exactly=false)
-    if (options.exactly && React.Children.count(expected.props.children) !== React.Children.count(actual.props.children)) {
-        return false;
-    }
-
-    if (React.Children.count(expected.props.children)) {
-        if (React.Children.count(actual.props.children) === 0) {
-            return false;
-        }
-
-        var shouldNormalize = !options.exactly;
-        var actualChildren = getChildrenArray(actual.props.children, {
-            normalize: shouldNormalize
-        });
-        var expectedChildren = getChildrenArray(expected.props.children, {
-            normalize: shouldNormalize
-        });
-
-        var arrayDiffs = ArrayChanges(
-            actualChildren,
-            expectedChildren,
-            function (a, b) {
-                return elementsMatch(a, b, equal, options);
-            },
-            function () {
-                return false;
-            });
-
-        var arrayMatches = true;
-        arrayDiffs.forEach(function (diffItem) {
-            switch (diffItem.type) {
-                case 'equal':
-                    return;
-                case 'remove':
-                    if (options.exactly) {
-                        arrayMatches = false;
-                    }
-                    break;
-                default:
-                    arrayMatches = false;
-                    break;
-
-            }
-        });
-
-        if (!arrayMatches) {
-            return false;
-        }
-    }
-    return true;
-
-}
 
 function compareElements(actual, expected, expect, options) {
 
-    var result  = elementsMatch(actual, expected, expect.equal.bind(expect), options);
+    var result  = Equality.elementsMatch(actual, expected, expect.equal.bind(expect), options);
     if (!result) {
         return expect.fail('elements are not equal');
     }
@@ -201,7 +16,7 @@ function compareElements(actual, expected, expect, options) {
 
 function findElementIn(haystack, needle, expect, options) {
 
-    if (elementsMatch(haystack, needle, expect.equal.bind(expect), options)) {
+    if (Equality.elementsMatch(haystack, needle, expect.equal.bind(expect), options)) {
         return true;
     }
 
@@ -210,13 +25,13 @@ function findElementIn(haystack, needle, expect, options) {
 
     if (haystack.props && haystack.props.children) {
 
-        var children = getChildrenArray(haystack.props.children, {
+        var children = Element.getChildrenArray(haystack.props.children, {
             normalize: shouldNormalize
         });
 
         children.forEach(function (child) {
 
-            if (elementsMatch(child, needle, expect.equal.bind(expect), options)) {
+            if (Equality.elementsMatch(child, needle, expect.equal.bind(expect), options)) {
                 found = true;
                 return;
             }
@@ -236,19 +51,17 @@ function diffChildren(actual, expected, output, diff, inspect, equal, options) {
         return;
     }
 
-    var actualChildren = [];
-    React.Children.forEach(actual, function (child) { actualChildren.push(child); });
-    var expectedChildren = [];
-    React.Children.forEach(expected, function (child) { expectedChildren.push(child); });
+    var actualChildren = Element.getChildrenArray(actual, {
+        normalize: !options || !options.exactly
+    });
 
-    if (options && !options.exactly) {
-        actualChildren = actualChildren.reduce(concatenateStringChildren, []);
-        expectedChildren = expectedChildren.reduce(concatenateStringChildren, []);
-    }
+    var expectedChildren = Element.getChildrenArray(expected, {
+        normalize: !options || !options.exactly
+    });
 
     var changes = ArrayChanges(actualChildren, expectedChildren,
         function (a, b) {
-            return elementsMatch(a, b, equal, options);
+            return Equality.elementsMatch(a, b, equal, options);
         },
 
                 function (a, b) {
@@ -259,7 +72,7 @@ function diffChildren(actual, expected, output, diff, inspect, equal, options) {
                     }
 
                     return (
-                        getElementName(a)  === getElementName(b)
+                        Element.getName(a)  === Element.getName(b)
                     );
                 } );
 
@@ -305,19 +118,6 @@ function diffChildren(actual, expected, output, diff, inspect, equal, options) {
     });
 }
 
-function propsMatch(actual, expected, equal, options) {
-    if (options && options.exactly) {
-        return equal(actual, expected);
-    }
-    var matching = true;
-    Object.keys(expected).forEach(function (key) {
-        if (!equal(actual[key], expected[key])) {
-            matching = false;
-        }
-    });
-    return matching;
-}
-
 function diffElements(actual, expected, output, diff, inspect, equal, options) {
     var result = {
         diff: output,
@@ -331,31 +131,31 @@ function diffElements(actual, expected, output, diff, inspect, equal, options) {
     var emptyElements = (!actual.props || React.Children.count(actual.props.children) === 0) &&
         (!expected.props || React.Children.count(expected.props.children) === 0);
 
-    var propsMatching = propsMatch(getProps(actual), getProps(expected), equal, options);
+    var propsMatching = Equality.propsMatch(Element.getProps(actual), Element.getProps(expected), equal, options);
 
-    var conflictingElement = getElementName(actual) !== getElementName(expected) || !propsMatching;
+    var conflictingElement = Element.getName(actual) !== Element.getName(expected) || !propsMatching;
 
     if (conflictingElement) {
         var canContinueLine = true;
         output
             .prismPunctuation('<')
-            .prismTag(getElementName(actual));
-        if (getElementName(actual) !== getElementName(expected)) {
+            .prismTag(Element.getName(actual));
+        if (Element.getName(actual) !== Element.getName(expected)) {
             output.sp().annotationBlock(function () {
-                this.error('should be').sp().prismTag(getElementName(expected));
+                this.error('should be').sp().prismTag(Element.getName(expected));
             }).nl();
             canContinueLine = false;
         }
-        var actualProps = getProps(actual);
-        var expectedProps = getProps(expected);
+        var actualProps = Element.getProps(actual);
+        var expectedProps = Element.getProps(expected);
         Object.keys(actualProps).forEach(function (propName) {
-            output.sp(canContinueLine ? 1 : 2 + getElementName(actual).length);
+            output.sp(canContinueLine ? 1 : 2 + Element.getName(actual).length);
             if (propName in expectedProps) {
                 if (actualProps[propName] === expectedProps[propName]) {
-                    writeProp(output, propName, actualProps[propName]);
+                    Write.writeProp(output, propName, actualProps[propName]);
                     canContinueLine = true;
                 } else {
-                    writeProp(output, propName, actualProps[propName], inspect);
+                    Write.writeProp(output, propName, actualProps[propName], inspect);
                     output.sp().annotationBlock(function () {
                         var diffResults = diff(actualProps[propName], expectedProps[propName]);
                         if (diffResults) {
@@ -369,7 +169,7 @@ function diffElements(actual, expected, output, diff, inspect, equal, options) {
                 }
                 delete expectedProps[propName];
             } else if (options.exactly) {
-                writeProp(output, propName, actualProps[propName]);
+                Write.writeProp(output, propName, actualProps[propName]);
                 output.sp().annotationBlock(function () {
                     this.error('should be removed');
                 }).nl();
@@ -377,18 +177,18 @@ function diffElements(actual, expected, output, diff, inspect, equal, options) {
             }
         });
         Object.keys(expectedProps).forEach(function (propName) {
-            output.sp(canContinueLine ? 1 : 2 + getElementName(actual).length);
+            output.sp(canContinueLine ? 1 : 2 + Element.getName(actual).length);
             output.annotationBlock(function () {
                 this.error('missing').sp();
-                writeProp(this, propName, expectedProps[propName]);
+                Write.writeProp(this, propName, expectedProps[propName]);
             }).nl();
             canContinueLine = false;
         });
         output.prismPunctuation('>');
     } else {
         output.prismPunctuation('<')
-            .prismTag(getElementName(actual));
-        writeProps(output, actual.props);
+            .prismTag(Element.getName(actual));
+        Write.writeProps(output, actual.props);
         output.prismPunctuation('>');
     }
 
@@ -398,7 +198,7 @@ function diffElements(actual, expected, output, diff, inspect, equal, options) {
         output.nl().outdentLines();
     }
 
-    output.code('</' + getElementName(actual) + '>', 'html');
+    output.code('</' + Element.getName(actual) + '>', 'html');
     return result;
 }
 
@@ -439,17 +239,15 @@ module.exports = {
 
                 output
                     .prismPunctuation('<')
-                    .prismTag(getElementName(value));
+                    .prismTag(Element.getName(value));
 
-                writeProps(output, value.props);
+                Write.writeProps(output, value.props);
 
                 if (React.Children.count(value.props.children)) {
                     output.prismPunctuation('>');
                     output.nl().indentLines();
 
-                    var children = [];
-                    React.Children.forEach(value.props.children, function (child) { children.push(child); });
-                    children = children.reduce(concatenateStringChildren, []);
+                    var children = Element.getChildrenArray(value.props.children, { normalize: true });
 
                     children.forEach(function (child) {
 
@@ -461,7 +259,7 @@ module.exports = {
                     });
                     output.outdentLines();
                     output.i()
-                        .prismPunctuation('</').prismTag(getElementName(value)).prismPunctuation('>');
+                        .prismPunctuation('</').prismTag(Element.getName(value)).prismPunctuation('>');
 
                 } else {
                     output.prismPunctuation(' />');
@@ -472,7 +270,7 @@ module.exports = {
                 return diffElements(actual, expected, output, diff, inspect, equal);
             },
             equal: function(a, b, equal) {
-                return elementsMatch(a, b, equal, { exactly: true });
+                return Equality.elementsMatch(a, b, equal, { exactly: true });
             }
         });
 
