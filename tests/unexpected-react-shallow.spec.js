@@ -1152,9 +1152,9 @@ describe('unexpected-react-shallow', () => {
                 '</div>\n' +
                 '\n' +
                 '<div className="outer">\n' +
-                "  '123'// should be <span>\n" +
-                '       //             123\n' +
-                '       //           </span>\n' +
+                "  123 // should be <span>\n" +
+                '      //             123\n' +
+                '      //           </span>\n' +
                 '</div>');
         });
 

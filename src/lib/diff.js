@@ -116,7 +116,8 @@ exports.diffElements = internals.diffElements =
         if (stringVsComponentMismatch) {
 
             if (actualIsNative) {
-                output.append(inspect(actual))
+                output.append(actual)
+                    .sp()
                     .annotationBlock(function () {
                         this.error('should be').sp().block(inspect(expected));
                     });

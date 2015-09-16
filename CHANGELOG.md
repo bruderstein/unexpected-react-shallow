@@ -1,4 +1,9 @@
 
+#v0.3.1
+
+* Improved output when the actual is a string, and the expected is a component
+  Previously, the actual text was quoted, which was inaccurate
+
 #v0.3.0
 
 * Internal refactor
