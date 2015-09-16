@@ -1,6 +1,26 @@
-#v0.1.2
 
-* First version (that worked)
+#v0.3.0
+
+* Internal refactor
+* Fixed error message and improved output for strings-that-should-be-components, and vice versa.
+
+e.g.
+```js
+renderer.render(
+  <div>
+     <span>abc</span>
+  </div>
+);
+
+expect(renderer, 'to have rendered',
+  <div>
+     abc
+  </div>
+);
+```
+
+The `<span>` should actually just a straight string `'abc'`, rather than `'abc'` wrapped in a `<span>`.
+Works both ways round.
 
 #v0.2.0
 
@@ -11,3 +31,6 @@
   expect(renderer, 'to have rendered', '<span>Button was clicked 5 times</span>');
 ```
 
+#v0.1.2
+
+* First version (that worked)

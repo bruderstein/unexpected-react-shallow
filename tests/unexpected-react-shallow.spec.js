@@ -1100,6 +1100,65 @@ describe('unexpected-react-shallow', () => {
                 '</div>');
         });
 
+        it('identifies when a string element should be a real element', function () {
+
+            renderer.render(
+                <div className="outer">
+                    <span>123</span>
+                </div>);
+
+            expect(() => testExpect(renderer, 'to have rendered',
+                <div className="outer">
+                    123
+                </div>), 'to throw',
+                'expected\n' +
+                '<div className="outer">\n' +
+                '  <span>\n' +
+                '    123\n' +
+                '  </span>\n' +
+                '</div>\n' +
+                'to have rendered\n' +
+                '<div className="outer">\n' +
+                '  123\n' +
+                '</div>\n' +
+                '\n' +
+                '<div className="outer">\n' +
+                '  <span> // \n' +
+                '    123  //\n' +
+                "  </span>// should be '123'\n" +
+                '</div>');
+        });
+
+        it('identifies when a real element should be a string element', function () {
+
+            renderer.render(
+                <div className="outer">
+                    123
+                </div>);
+
+            expect(() => testExpect(renderer, 'to have rendered',
+                <div className="outer">
+                    <span>123</span>
+                </div>), 'to throw',
+                'expected\n' +
+                '<div className="outer">\n' +
+                '  123\n' +
+                '</div>\n' +
+                'to have rendered\n' +
+                '<div className="outer">\n' +
+                '  <span>\n' +
+                '    123\n' +
+                '  </span>\n' +
+                '</div>\n' +
+                '\n' +
+                '<div className="outer">\n' +
+                "  '123'// should be <span>\n" +
+                '       //             123\n' +
+                '       //           </span>\n' +
+                '</div>');
+        });
+
+
 
     });
 
