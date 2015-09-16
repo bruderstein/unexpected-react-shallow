@@ -2,7 +2,7 @@
 #v0.3.0
 
 * Internal refactor
-* Fixed error message and improved output for strings-that-should-be-components, and vice versa.
+* Fixed error when handling and improved output for strings-that-should-be-components, and vice versa.
 
 e.g.
 ```js

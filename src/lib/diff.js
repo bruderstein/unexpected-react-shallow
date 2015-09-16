@@ -89,7 +89,7 @@ internals.diffChildren = function diffChildren(actual, expected, output, diff, i
             }
         }).nl(index < changes.length - 1 ? 1 : 0);
     });
-}
+};
 
 exports.diffElements = internals.diffElements =
     function diffElements(actual, expected, output, diff, inspect, equal, options) {
@@ -197,4 +197,4 @@ exports.diffElements = internals.diffElements =
             output.code('</' + Element.getName(actual) + '>', 'html');
         }
         return result;
-    }
+    };
