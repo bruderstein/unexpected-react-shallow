@@ -24,19 +24,10 @@ exports.addAssertionsTo = function (expect) {
         });
     });
 
-    expect.addAssertion('ReactElement', 'to contain', function (expect, subject, expected) {
+    expect.addAssertion('ReactElement', 'to contain [exactly]', function (expect, subject, expected) {
 
         if (!Search.findElementIn(subject, expected, expect, {
-                exactly: false
-            })) {
-            expect.fail();
-        }
-    });
-
-    expect.addAssertion('ReactElement', 'to contain exactly', function (expect, subject, expected) {
-
-        if (!Search.findElementIn(subject, expected, expect, {
-                exactly: true
+                exactly: this.flags.exactly
             })) {
             expect.fail();
         }
