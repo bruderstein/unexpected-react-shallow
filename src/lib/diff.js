@@ -70,7 +70,11 @@ internals.diffChildren = function diffChildren(actual, expected, output, diff, i
                         this.text(diffItem.value).sp().error('// should be removed');
                     });
                 } else {
-                    this.block(inspect(diffItem.value).sp().error('// should be removed'));
+                    var actualInspectBlock = inspect(diffItem.value);
+                    this.block(actualInspectBlock).sp().annotationBlock(function () {
+                        this.error('should be removed');
+                        this.nl(actualInspectBlock.size().height - 1);
+                    });
                 }
             } else if (type === 'equal') {
                 if (typeof diffItem.value === 'string') {

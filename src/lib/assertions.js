@@ -5,19 +5,26 @@ var Search = require('./search');
 
 exports.addAssertionsTo = function (expect) {
 
-    expect.addAssertion('ReactElement', 'to have [exactly] rendered', function (expect, subject, renderOutput) {
+    expect.addAssertion('ReactElement', 'to have [exactly] rendered [with all children]', function (expect, subject, renderOutput) {
 
         var exactly = this.flags.exactly;
+        var withAllChildren = this.flags['with all children'];
 
-        expect.withError(function () {
+        if (exactly && withAllChildren) {
+            return expect.fail('`exactly` and `with all children` cannot be used together. `exactly` implies `with all children`');
+        }
+
+        return expect.withError(function () {
             return Equality.assertElementsMatch(subject, renderOutput, expect, {
-                exactly: exactly
+                exactly: exactly,
+                withAllChildren: withAllChildren
             });
         }, function (e) {
             return expect.fail({
                 diff : function (output, diff, inspect, equal) {
                     return Diff.diffElements(subject, renderOutput, output, diff, inspect, equal, {
-                        exactly: exactly
+                        exactly: exactly,
+                        withAllChildren: withAllChildren
                     });
                 }
             });
@@ -39,10 +46,11 @@ exports.addAssertionsTo = function (expect) {
         return expect(subject, 'to have rendered', expected);
     });
 
-    expect.addAssertion('ReactShallowRenderer', 'to have [exactly] rendered', function (expect, subject, renderOutput) {
+    expect.addAssertion('ReactShallowRenderer', 'to have [exactly] rendered [with all children]', function (expect, subject, renderOutput) {
 
         var actual = subject.getRenderOutput();
-        return expect(actual, 'to have ' + (this.flags.exactly ? 'exactly ' : '') + 'rendered', renderOutput);
+        return expect(actual, 'to have ' + (this.flags.exactly ? 'exactly ' : '') + 'rendered' +
+            (this.flags['with all children'] ? ' with all children' : ''), renderOutput);
     });
 
     expect.addAssertion('ReactShallowRenderer', 'to contain [exactly][with all children]', function (expect, subject, expected) {

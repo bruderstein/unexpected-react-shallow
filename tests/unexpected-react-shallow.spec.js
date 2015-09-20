@@ -1100,6 +1100,106 @@ describe('unexpected-react-shallow', () => {
                 '</div>');
         });
 
+        it('highlights removals in complex content with `with all children`', function () {
+            var content = 'test';
+
+            renderer.render(
+                <div>
+                    <ClassComponent>
+                        <div className="one" />
+                        <ES5Component className="three" />
+                        <span>foo</span>
+                    </ClassComponent>
+                </div>
+            );
+
+            expect(() => testExpect(renderer, 'to have rendered with all children',
+                <div>
+                    <ClassComponent>
+                        <div className="one" />
+                        <span>foo</span>
+                    </ClassComponent>
+                </div>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    <div className="one" />\n' +
+                '    <ES5Component className="three" />\n' +
+                '    <span>\n' +
+                '      foo\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                'to have rendered with all children\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    <div className="one" />\n' +
+                '    <span>\n' +
+                '      foo\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>\n' +
+                '\n' +
+                '<div>\n' +
+                '  <ClassComponent>\n' +
+                '    <div className="one" />\n' +
+                '    <ES5Component className="three" /> // should be removed\n' +
+                '    <span>\n' +
+                '      foo\n' +
+                '    </span>\n' +
+                '  </ClassComponent>\n' +
+                '</div>');
+        });
+
+        it('highlights the block removal for deep children', function () {
+            renderer.render(
+                <ul>
+                    <li>one</li>
+                    <li>two</li>
+                    <li>three</li>
+                </ul>
+            );
+
+            expect(() => testExpect(renderer, 'to have rendered with all children',
+                <ul>
+                    <li>one</li>
+                    <li>two</li>
+                </ul>), 'to throw',
+                'expected\n' +
+                '<ul>\n' +
+                '  <li>\n' +
+                '    one\n' +
+                '  </li>\n' +
+                '  <li>\n' +
+                '    two\n' +
+                '  </li>\n' +
+                '  <li>\n' +
+                '    three\n' +
+                '  </li>\n' +
+                '</ul>\n' +
+                'to have rendered with all children\n' +
+                '<ul>\n' +
+                '  <li>\n' +
+                '    one\n' +
+                '  </li>\n' +
+                '  <li>\n' +
+                '    two\n' +
+                '  </li>\n' +
+                '</ul>\n' +
+                '\n' +
+                '<ul>\n' +
+                '  <li>\n' +
+                '    one\n' +
+                '  </li>\n' +
+                '  <li>\n' +
+                '    two\n' +
+                '  </li>\n' +
+                '  <li>    // should be removed\n' +
+                '    three //\n' +
+                '  </li>   //\n' +
+                '</ul>');
+        });
+
         it('identifies when a string element should be a real element', function () {
 
             renderer.render(
@@ -1601,6 +1701,7 @@ describe('unexpected-react-shallow', () => {
                 '  </span>\n' +
                 '</ClassComponent>');
         });
+
         it('finds a match when the render contains children, but the expected does not, and `exactly` is not used', function () {
             renderer.render(
                 <div>
