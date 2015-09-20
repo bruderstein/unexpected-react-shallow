@@ -1701,4 +1701,26 @@ describe('unexpected-react-shallow', () => {
                 '</ClassComponent>');
         });
     });
+
+    describe('to satisfy', () => {
+
+        describe('renderOutput', () => {
+
+            it('should satisfy a matching output', () => {
+
+                renderer.render(
+                    <div>
+                        <span className="one">foo</span>
+                        <span className="two">bar</span>
+                    </div>)
+
+                testExpect(renderer.getRenderOutput(), 'to satisfy',
+                <div>
+                    <span>foo</span>
+                    <span>bar</span>
+                </div>);
+            });
+        });
+    });
+
 });

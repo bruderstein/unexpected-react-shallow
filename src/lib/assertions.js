@@ -42,6 +42,11 @@ exports.addAssertionsTo = function (expect) {
         }
     });
 
+    expect.addAssertion('ReactElement', 'to satisfy', function (expect, subject, expected) {
+
+        return expect(subject, 'to have rendered', expected);
+    });
+
     expect.addAssertion('ReactShallowRenderer', 'to have [exactly] rendered', function (expect, subject, renderOutput) {
 
         var actual = subject.getRenderOutput();

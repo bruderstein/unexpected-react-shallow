@@ -50,10 +50,11 @@ exports.addTypeTo = function (expect) {
         },
 
         diff: function (actual, expected, output, diff, inspect, equal) {
-            return Diff.diffElements(actual, expected, output, diff, inspect, equal);
+            return Diff.diffElements(actual, expected, output, diff, inspect, equal, { exactly: true });
         },
+
         equal: function (a, b, equal) {
-            return Equality.elementsMatch(a, b, equal, {exactly: true});
+            return Equality.elementsMatch(a, b, equal, { exactly: true });
         }
     });
 };
