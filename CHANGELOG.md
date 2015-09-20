@@ -1,4 +1,10 @@
 
+#v0.4.0
+
+* Fixed issue with non-string native elements (e.g. numbers) comparing to real elements
+* Made 'to satisfy' an alias of 'to have rendered' for ReactElement. Makes converting tests easier, and doesn't
+  error on existing 'to satisfy' ReactElement tests (e.g. non unexpected-react-shallow tests)
+
 #v0.3.1
 
 * Improved output when the actual is a string, and the expected is a component
