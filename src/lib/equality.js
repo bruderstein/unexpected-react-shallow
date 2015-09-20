@@ -77,7 +77,7 @@ exports.elementsMatch = internals.elementsMatch = function elementsMatch(actual,
                 case 'equal':
                     return;
                 case 'remove':
-                    if (options.exactly) {
+                    if (options.exactly || options.withAllChildren) {
                         arrayMatches = false;
                     }
                     break;

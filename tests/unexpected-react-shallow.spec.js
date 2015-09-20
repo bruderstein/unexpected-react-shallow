@@ -1550,6 +1550,57 @@ describe('unexpected-react-shallow', () => {
                 '</ClassComponent>');
         });
 
+        it('does not find a match when there are extra children in the render, and `with all children` is used', function () {
+            renderer.render(
+                <div>
+                    <span>nested</span>
+                    <span>
+                        <ClassComponent className="bar" />
+                        <ClassComponent className="foo" />
+                        <ClassComponent className="candidate">
+                            <span>one</span>
+                            <span>two</span>
+                            <span>three</span>
+                        </ClassComponent>
+                    </span>
+                </div>);
+
+            expect(() => testExpect(renderer, 'to contain with all children',
+                <ClassComponent className="candidate">
+                    <span>one</span>
+                    <span>three</span>
+                </ClassComponent>), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <span>\n' +
+                '    nested\n' +
+                '  </span>\n' +
+                '  <span>\n' +
+                '    <ClassComponent className="bar" />\n' +
+                '    <ClassComponent className="foo" />\n' +
+                '    <ClassComponent className="candidate">\n' +
+                '      <span>\n' +
+                '        one\n' +
+                '      </span>\n' +
+                '      <span>\n' +
+                '        two\n' +
+                '      </span>\n' +
+                '      <span>\n' +
+                '        three\n' +
+                '      </span>\n' +
+                '    </ClassComponent>\n' +
+                '  </span>\n' +
+                '</div>\n' +
+                'to contain with all children\n' +
+                '<ClassComponent className="candidate">\n' +
+                '  <span>\n' +
+                '    one\n' +
+                '  </span>\n' +
+                '  <span>\n' +
+                '    three\n' +
+                '  </span>\n' +
+                '</ClassComponent>');
+        });
         it('finds a match when the render contains children, but the expected does not, and `exactly` is not used', function () {
             renderer.render(
                 <div>

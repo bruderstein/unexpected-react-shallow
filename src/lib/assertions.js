@@ -24,10 +24,11 @@ exports.addAssertionsTo = function (expect) {
         });
     });
 
-    expect.addAssertion('ReactElement', 'to contain [exactly]', function (expect, subject, expected) {
+    expect.addAssertion('ReactElement', 'to contain [exactly][with all children]', function (expect, subject, expected) {
 
         if (!Search.findElementIn(subject, expected, expect, {
-                exactly: this.flags.exactly
+                exactly: this.flags.exactly,
+                withAllChildren: this.flags['with all children']
             })) {
             expect.fail();
         }
@@ -44,16 +45,17 @@ exports.addAssertionsTo = function (expect) {
         return expect(actual, 'to have ' + (this.flags.exactly ? 'exactly ' : '') + 'rendered', renderOutput);
     });
 
-    expect.addAssertion('ReactShallowRenderer', 'to contain', function (expect, subject, expected) {
+    expect.addAssertion('ReactShallowRenderer', 'to contain [exactly][with all children]', function (expect, subject, expected) {
 
         var actual = subject.getRenderOutput();
-        return expect(actual, 'to contain', expected);
-    });
-
-    expect.addAssertion('ReactShallowRenderer', 'to contain exactly', function (expect, subject, expected) {
-
-        var actual = subject.getRenderOutput();
-        return expect(actual, 'to contain exactly', expected);
+        var extensions = '';
+        if (this.flags.exactly) {
+            extensions = ' exactly';
+        }
+        if (this.flags['with all children']) {
+            extensions = ' with all children';
+        }
+        return expect(actual, 'to contain' + extensions, expected);
     });
 
 };
