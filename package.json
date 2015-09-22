@@ -37,7 +37,7 @@
   "author": "Dave Brotherstone <davegb@pobox.com>",
   "repository": {
       "type": "git",
-      "url": "https//github.com/bruderstein/unexpected-react-shallow.git"
+      "url": "https://github.com/bruderstein/unexpected-react-shallow.git"
   },
   "bugs": {
       "url": "https://github.com/bruderstein/unexpected-react-shallow/issues"
