@@ -32,7 +32,7 @@
   },
   "peerDependencies": {
     "unexpected": "^10.0.0",
-    "react": "^0.13.0"
+    "react": "^0.13.0 || ^0.14.0"
   },
   "author": "Dave Brotherstone <davegb@pobox.com>",
   "repository": {
