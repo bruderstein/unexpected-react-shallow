@@ -2,7 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/bruderstein/unexpected-react-shallow/badge.svg?branch=master&service=github)](https://coveralls.io/github/bruderstein/unexpected-react-shallow?branch=master)
 # unexpected-react-shallow
 
-A port of the excellent [unexpected-dom](https://github.com/munter/unexpected-dom) to support 
+A port of the excellent [unexpected-dom](https://github.com/munter/unexpected-dom) to support
 [React](http://reactjs.org) [shallow renderer](https://facebook.github.io/react/docs/test-utils.html#shallow-rendering).
 
 Diffing of props and content, including detailed diffing of object props.
@@ -13,14 +13,14 @@ var renderer = TestUtils.createRenderer();
 
 renderer.render(<SomeComponent id={125} />);
 
-expect(renderer, 'to have rendered', 
+expect(renderer, 'to have rendered',
     <div id={125}>
        Some simple content
     </div>);
 
 ```
 
-And you receive a beautiful error message 
+And you receive a beautiful error message
 
 ![error message](https://raw.githubusercontent.com/bruderstein/unexpected-react-shallow/master/docs/error_diff.png)
 
@@ -49,7 +49,7 @@ var expect = unexpected.clone()
 ```
 
 # Assertions
- 
+
 ## `to have rendered`
 
 ```js
@@ -66,7 +66,7 @@ expect(shallowRenderer, 'to have rendered', <div className="test" />);
 
 The same thing works for `shallowRenderer.getRenderOutput()`.
 
-Extra props that are rendered are ignored (see `to have exactly rendered below`), as 
+Extra props that are rendered are ignored (see `to have exactly rendered below`), as
 are extra children.
 
 Using the following simple component:
@@ -86,6 +86,7 @@ var Component = React.createClass({
 ```
 
 You can make the following assertions:
+## `to have [exactly] rendered [with all children]`
 
 ```js
 // Extra props and children from the render are ignored
@@ -108,13 +109,30 @@ expect(renderer, 'to have rendered',
 );
 ```
 
-If you want to check for an exact render, use `'to have exactly rendered'`
+If you want to check for an exact render, use `'to have exactly rendered'`.
+
+Alternatively, if you don't care about extra props, but want to check that there are no extra child nodes, use `'to have rendered with all children'`
+Note that `exactly` implies `with all children`, so you using both options is not necessary.
 
 
 ```js
 
-// The span "two" is missing here, as is `className="parent"` 
-// This will cause an assertion error, 
+// The span "two" is missing here, as is `className="parent"`
+// The missing span will cause an assertion error, but the extra prop will be ignored
+// due to `to have rendered with all children` being used
+
+expect(renderer, 'to have rendered with all children',
+   <div id="main">
+      <span>one</span>
+      <span>three</span>
+  </div>
+);
+```
+
+```js
+
+// The span "two" is missing here, as is `className="parent"`
+// This will cause an assertion error,
 // due to `to have exactly rendered` being used
 
 expect(renderer, 'to have exactly rendered',
@@ -127,7 +145,7 @@ expect(renderer, 'to have exactly rendered',
 
 ## `to contain`
 
-It's possible to check for a part of the subtree, without 
+It's possible to check for a part of the subtree, without
 testing the entire returned tree.  This allows you to test specific elements, without
 writing brittle tests that break when the structure changes.
 
@@ -137,13 +155,13 @@ expect(renderer, 'to contain', <span>two</span>);
 ```
 
 Notice that the extra `className="middle"` in the `<span className="middle">two</span>` is ignored,
-in a similar way to the `to have rendered` assertion. 
+in a similar way to the `to have rendered` assertion.
 
-You can override this behaviour by using `'to contain exactly'`
+You can override this behaviour by using `'to contain exactly'`, and `'to contain with all children'`
 
 
 ```js
-// This will fail, as `<span>two</span>` cannot be found in the renderers output, due to 
+// This will fail, as `<span>two</span>` cannot be found in the renderers output, due to
 // the missing `className="middle"` prop
 expect(renderer, 'to contain exactly', <span>two</span>);
 
@@ -170,11 +188,11 @@ For example:
 ```
 
 This actually produces 3 "child" elements of the div, `Click on `, the `clickCount` and the ` times`
-To make this simpler, `unexpected-react-shallow` concatenates these values so you can simply test the 
+To make this simpler, `unexpected-react-shallow` concatenates these values so you can simply test the
 previous example as follows:
 
 ```js
-expect(renderer, 'to have rendered', 
+expect(renderer, 'to have rendered',
     <div>
        Clicked on 3 times
     </div>);
@@ -184,7 +202,7 @@ If you use the `exactly` variants of the assertions, you will need to split up y
 
 e.g.
 ```js
-expect(renderer, 'to have exactly rendered', 
+expect(renderer, 'to have exactly rendered',
     <div>
        Clicked on {3} times
     </div>);
@@ -197,7 +215,7 @@ as you believe it should, raise an issue!
 
 # Thanks
 
-Special thanks to all of the [unexpected](http://github.com/unexpectedjs) team. The quality failure 
+Special thanks to all of the [unexpected](http://github.com/unexpectedjs) team. The quality failure
 messages and diffs have made a huge difference to the way I test, and how quickly issues are resolved.
 
 A huge thanks to @Munter, who wrote [unexpected-dom](http://github.com/munter/unexpected-dom), which enables

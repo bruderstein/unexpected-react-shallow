@@ -1,4 +1,9 @@
 
+#v0.5.0
+
+* Added `'to contain with all children'` and `'to have rendered with all children'` assertions, to check for
+  missing children, but allow missing props.
+
 #v0.4.0
 
 * Fixed issue with non-string native elements (e.g. numbers) comparing to real elements
