@@ -9,13 +9,13 @@ exports.addTypeTo = function (expect) {
         name: 'ReactElement',
 
         identify: function (value) {
-            return React.isValidElement(value) || (typeof value === 'object' &&
-                    value !== null &&
-                    typeof value.type === 'string' &&
-                    value.hasOwnProperty('props') &&
-                    value.hasOwnProperty('ref') &&
-                    value.hasOwnProperty('key')
-                );
+            return React.isValidElement(value) ||
+                (typeof value === 'object' &&
+                 value !== null &&
+                 (typeof value.type === 'function' || typeof value.type === 'string') &&
+                 value.hasOwnProperty('props') &&
+                 value.hasOwnProperty('ref') &&
+                 value.hasOwnProperty('key'));
         },
 
         inspect: function (value, depth, output, inspect) {

@@ -23,6 +23,21 @@ class ClassComponent extends React.Component {
 }
 
 
+function render(renderer, component) {
+    if (React.version === '0.14.0' && typeof component.type === 'string') {
+        return component;
+    } else {
+        renderer.render(<div />);
+        return renderer.getRenderOutput();
+    }
+}
+
+class MyDiv extends React.Component {
+    render() {
+        return React.createElement('div', this.props);
+    }
+}
+
 describe('unexpected-react-shallow', () => {
 
     var testExpect;
@@ -38,7 +53,7 @@ describe('unexpected-react-shallow', () => {
 
     it('identifies a ReactElement', () => {
 
-        renderer.render(<div />);
+        renderer.render(<MyDiv />);
         var element = renderer.getRenderOutput();
 
         testExpect(element, 'to be a', 'ReactElement');
@@ -53,42 +68,42 @@ describe('unexpected-react-shallow', () => {
 
         it('outputs a tag element with no props', () => {
 
-            renderer.render(<div />);
+            renderer.render(<MyDiv />);
             expect(() => testExpect(renderer, 'to equal', ''), 'to throw',
                 "expected <div /> to equal ''");
         });
 
         it('outputs a tag element with string  props', () => {
 
-            renderer.render(<div className="test"/>);
+            renderer.render(<MyDiv className="test"/>);
             expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
                 'expected <div className="test" /> to equal 1');
         });
 
         it('outputs a tag element with number props', () => {
 
-            renderer.render(<div id={42} />);
+            renderer.render(<MyDiv id={42} />);
             expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
                 'expected <div id={42} /> to equal 1');
         });
 
         it('outputs a tag element with boolean props', () => {
 
-            renderer.render(<div disabled={true} />);
+            renderer.render(<MyDiv disabled={true} />);
             expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
                 'expected <div disabled={true} /> to equal 1');
         });
 
         it('outputs a tag element with null props', () => {
 
-            renderer.render(<div className={null} />);
+            renderer.render(<MyDiv className={null} />);
             expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
                 'expected <div className={null} /> to equal 1');
         });
 
         it('outputs a tag element with an undefined prop', () => {
 
-            renderer.render(<div className={undefined} />);
+            renderer.render(<MyDiv className={undefined} />);
             expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
                 'expected <div className={undefined} /> to equal 1');
         });
@@ -96,7 +111,7 @@ describe('unexpected-react-shallow', () => {
         it('outputs a tag element with an object prop', () => {
 
             var obj = { some: 'prop' };
-            renderer.render(<div className={obj} />);
+            renderer.render(<MyDiv className={obj} />);
             expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
                 'expected <div className={...} /> to equal 1');
         });
@@ -104,14 +119,14 @@ describe('unexpected-react-shallow', () => {
         it('outputs a tag element with an function prop', () => {
 
             var fn = function (a, b) { return a + b; };
-            renderer.render(<div onClick={fn} />);
+            renderer.render(<MyDiv onClick={fn} />);
             expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
                 'expected <div onClick={ function(){...} } /> to equal 1');
         });
 
         it('outputs a tag with a single string child', () => {
 
-            renderer.render(<div className="test">some content</div>);
+            renderer.render(<MyDiv className="test">some content</MyDiv>);
             expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
                 'expected\n' +
                 '<div className="test">\n' +
@@ -122,7 +137,7 @@ describe('unexpected-react-shallow', () => {
 
         it('outputs an ES5 createClass component props and no children', () => {
 
-            renderer.render(<div><ES5Component className="test">some content</ES5Component></div>);
+            renderer.render(<MyDiv><ES5Component className="test">some content</ES5Component></MyDiv>);
 
             expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
                 'expected\n' +
@@ -136,7 +151,7 @@ describe('unexpected-react-shallow', () => {
 
         it('outputs an ES5 class component props and children', () => {
 
-            renderer.render(<div><ClassComponent className="test">some content</ClassComponent></div>);
+            renderer.render(<MyDiv><ClassComponent className="test">some content</ClassComponent></MyDiv>);
 
             expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
                 'expected\n' +
@@ -151,7 +166,7 @@ describe('unexpected-react-shallow', () => {
         it('outputs a set of deep nested components', () => {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent className="test">
                         <ClassComponent some={1} more={true} props="yeah">
                           some content
@@ -160,7 +175,7 @@ describe('unexpected-react-shallow', () => {
                           some different content
                         </ClassComponent>
                     </ClassComponent>
-                </div>);
+                </MyDiv>);
 
             expect(() => testExpect(renderer, 'to equal', 1), 'to throw',
                 'expected\n' +
@@ -185,8 +200,8 @@ describe('unexpected-react-shallow', () => {
 
         it('outputs a directly created native ReactElement', function () {
 
-            expect(() => testExpect(<div className="foo" />, 'to equal', 1),
-                'to throw', 'expected <div className="foo" /> to equal 1');
+            expect(() => testExpect(<MyDiv className="foo" />, 'to equal', 1),
+                'to throw', 'expected <MyDiv className="foo" /> to equal 1');
         });
 
         it('outputs a directly created inline element (React 0.14)', function () {
@@ -221,7 +236,7 @@ describe('unexpected-react-shallow', () => {
 
         it('diffs within simple text content inside native element', () => {
 
-            renderer.render(<div>Some simple content</div>);
+            renderer.render(<MyDiv>Some simple content</MyDiv>);
             var expected = <div>Different content</div>;
             // testExpect(renderer, 'to have rendered', expected);
 
@@ -245,7 +260,7 @@ describe('unexpected-react-shallow', () => {
 
         it('shows changed props within a simple native element', () => {
 
-            renderer.render(<div className="actual">Some simple content</div>);
+            renderer.render(<MyDiv className="actual">Some simple content</MyDiv>);
 
             expect(() => testExpect(renderer, 'to have rendered',
                 <div className="expected">
@@ -269,7 +284,7 @@ describe('unexpected-react-shallow', () => {
 
         it('shows missing props within a simple native element', () => {
 
-            renderer.render(<div>Some simple content</div>);
+            renderer.render(<MyDiv>Some simple content</MyDiv>);
 
             expect(() => testExpect(renderer, 'to have rendered',
                     <div className="expected" id="123">
@@ -293,7 +308,7 @@ describe('unexpected-react-shallow', () => {
 
         it('ignores extra props within a simple native element', () => {
 
-            renderer.render(<div id="123" className="extra">Some simple content</div>);
+            renderer.render(<MyDiv id="123" className="extra">Some simple content</MyDiv>);
 
             testExpect(renderer, 'to have rendered',
                     <div id="123">
@@ -303,7 +318,7 @@ describe('unexpected-react-shallow', () => {
 
         it('does not ignore extra props when using `exactly`', function () {
 
-            renderer.render(<div id="123" className="extra">Some simple content</div>);
+            renderer.render(<MyDiv id="123" className="extra">Some simple content</MyDiv>);
             expect(() => {
                 testExpect(renderer, 'to have exactly rendered',
                     <div id="123">
@@ -328,11 +343,11 @@ describe('unexpected-react-shallow', () => {
         it('matches props on a custom component', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent test={true} className="foo">
                         <span className="bar">foo</span>
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             testExpect(renderer, 'to have exactly rendered',
@@ -364,11 +379,11 @@ describe('unexpected-react-shallow', () => {
         it('highlights diffs on a nested custom component', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent test={true} className="foo">
                         <span className="bar">foo</span>
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             expect(() => testExpect(renderer, 'to have exactly rendered',
@@ -409,11 +424,11 @@ describe('unexpected-react-shallow', () => {
         it('ignores extra props on a nested custom component when not using `exactly`', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent test={true} className="foo" extraProp="boo!">
                         <span className="bar">foo</span>
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             testExpect(renderer, 'to have rendered',
@@ -428,11 +443,11 @@ describe('unexpected-react-shallow', () => {
         it('highlights extra props on a nested custom component when using `exactly`', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent test={true} className="foo" extraProp="boo!">
                         <span className="bar">foo</span>
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             expect(() => testExpect(renderer, 'to have exactly rendered',
@@ -473,12 +488,12 @@ describe('unexpected-react-shallow', () => {
         it('matches array of children in a custom component', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent test={true} className="foo">
                         <span className="one">1</span>
                         <span className="two">2</span>
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             testExpect(renderer, 'to have exactly rendered',
@@ -493,12 +508,12 @@ describe('unexpected-react-shallow', () => {
         it('highlights a removed item in an array of children in a custom component', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent test={true} className="foo">
                         <span className="one">1</span>
                         <span className="three">3</span>
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             expect(() => testExpect(renderer, 'to have exactly rendered',
@@ -557,12 +572,12 @@ describe('unexpected-react-shallow', () => {
         it('highlights an added item in an array of children in a custom component', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent test={true} className="foo">
                         <span className="one">1</span>
                         <span className="three">3</span>
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             expect(() => testExpect(renderer, 'to have exactly rendered',
@@ -622,13 +637,13 @@ describe('unexpected-react-shallow', () => {
         it('accepts added children at the end of an array when not using `exactly`', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent test={true} className="foo">
                         <span className="one">1</span>
                         <span className="two">2</span>
                         <span className="three">3</span>
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             testExpect(renderer, 'to have rendered',
@@ -643,13 +658,13 @@ describe('unexpected-react-shallow', () => {
         it('accepts added children in the middle of an array when not using `exactly`', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent test={true} className="foo">
                         <span className="one">1</span>
                         <span className="two">2</span>
                         <span className="three">3</span>
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             testExpect(renderer, 'to have rendered',
@@ -664,11 +679,11 @@ describe('unexpected-react-shallow', () => {
         it('highlights different typed children', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent test={true} className="foo">
                         <ClassComponent child={true} />
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             expect(() => testExpect(renderer, 'to have rendered',
@@ -704,9 +719,9 @@ describe('unexpected-react-shallow', () => {
             var objectB = { some: 'prop', arr: [ 1, 2, 3 ] };
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent test={objectA} />
-                </div>
+                </MyDiv>
             );
 
             testExpect(renderer, 'to have rendered',
@@ -721,9 +736,9 @@ describe('unexpected-react-shallow', () => {
             var objectB = { some: 'prop', arr: [ 1, 2, 4 ] };
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent test={objectA} />
-                </div>
+                </MyDiv>
             );
 
             expect(() => testExpect(renderer, 'to have rendered',
@@ -757,11 +772,11 @@ describe('unexpected-react-shallow', () => {
             var content = 'test';
             var content2 = 'test';
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         some text {content}
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             testExpect(renderer, 'to have rendered',
@@ -776,11 +791,11 @@ describe('unexpected-react-shallow', () => {
 
             var content = 'test';
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         some text {content}
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             testExpect(renderer, 'to have rendered',
@@ -795,11 +810,11 @@ describe('unexpected-react-shallow', () => {
 
             var content = 5;
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         some {content} value
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             testExpect(renderer, 'to have rendered',
@@ -814,11 +829,11 @@ describe('unexpected-react-shallow', () => {
 
             var content = null;
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         some {content} value
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             testExpect(renderer, 'to have rendered',
@@ -833,11 +848,11 @@ describe('unexpected-react-shallow', () => {
 
             var content = undefined;
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         some {content} value
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             testExpect(renderer, 'to have rendered',
@@ -852,11 +867,11 @@ describe('unexpected-react-shallow', () => {
 
             var content = true;
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         some {content} value
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             // An inline boolean is converted to null, so this "just works"
@@ -872,11 +887,11 @@ describe('unexpected-react-shallow', () => {
 
             var content = 'test';
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         some text {content}
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             expect(() => testExpect(renderer, 'to have exactly rendered',
@@ -912,11 +927,11 @@ describe('unexpected-react-shallow', () => {
             var content = 'foo';
             var content2 = 'bar';
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         some text {content}
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             expect(() => testExpect(renderer, 'to have rendered',
@@ -952,11 +967,11 @@ describe('unexpected-react-shallow', () => {
             var content2 = <ES5Component foo="bar" />;
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         some text {content}
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             testExpect(renderer, 'to have rendered',
@@ -973,11 +988,11 @@ describe('unexpected-react-shallow', () => {
             var content2 = <ES5Component foo="blah" />;
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         some text {content}
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             expect(() => testExpect(renderer, 'to have rendered',
@@ -1015,11 +1030,11 @@ describe('unexpected-react-shallow', () => {
             var content = 'test';
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         some text
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
             expect(() => testExpect(renderer, 'to have exactly rendered',
                 <div>
@@ -1053,13 +1068,13 @@ describe('unexpected-react-shallow', () => {
             var content = 'test';
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         <div className="one" />
                         <ES5Component className="three" />
                         <span>foo</span>
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             expect(() => testExpect(renderer, 'to have exactly rendered',
@@ -1203,9 +1218,9 @@ describe('unexpected-react-shallow', () => {
         it('identifies when a string element should be a real element', function () {
 
             renderer.render(
-                <div className="outer">
+                <MyDiv className="outer">
                     <span>123</span>
-                </div>);
+                </MyDiv>);
 
             expect(() => testExpect(renderer, 'to have rendered',
                 <div className="outer">
@@ -1232,9 +1247,9 @@ describe('unexpected-react-shallow', () => {
         it('identifies when a number element should be a real element', function () {
 
             renderer.render(
-                <div className="outer">
+                <MyDiv className="outer">
                     <span>{123}</span>
-                </div>);
+                </MyDiv>);
 
             expect(() => testExpect(renderer, 'to have rendered',
                 <div className="outer">
@@ -1263,9 +1278,9 @@ describe('unexpected-react-shallow', () => {
         it('identifies when a real element should be a string element', function () {
 
             renderer.render(
-                <div className="outer">
+                <MyDiv className="outer">
                     123
-                </div>);
+                </MyDiv>);
 
             expect(() => testExpect(renderer, 'to have rendered',
                 <div className="outer">
@@ -1292,9 +1307,9 @@ describe('unexpected-react-shallow', () => {
         it('identifies when a real element should be a number element', function () {
 
             renderer.render(
-                <div className="outer">
+                <MyDiv className="outer">
                     {123}
-                </div>);
+                </MyDiv>);
 
             expect(() => testExpect(renderer, 'to have rendered',
                 <div className="outer">
@@ -1327,13 +1342,13 @@ describe('unexpected-react-shallow', () => {
 
         it('matches renderer output to a component tree', function () {
 
-            renderer.render(<div><ClassComponent className="foo" /></div>);
+            renderer.render(<MyDiv><ClassComponent className="foo" /></MyDiv>);
             testExpect(renderer.getRenderOutput(), 'to equal', <div><ClassComponent className="foo" /></div>);
         });
 
         it('outputs a diff when the expected is different', function () {
 
-            renderer.render(<div><ClassComponent className="foo" /></div>);
+            renderer.render(<MyDiv><ClassComponent className="foo" /></MyDiv>);
 
             expect(() => testExpect(renderer.getRenderOutput(),
                 'to equal', <div><ClassComponent className="foobar" /></div>),
@@ -1360,24 +1375,24 @@ describe('unexpected-react-shallow', () => {
 
         it('finds an match at the top level', function () {
 
-            renderer.render(<div><ClassComponent className="foo" /></div>);
+            renderer.render(<MyDiv><ClassComponent className="foo" /></MyDiv>);
             testExpect(renderer, 'to contain', <div><ClassComponent className="foo" /></div>);
         });
 
         it('finds a match at a deeper level', function () {
 
-            renderer.render(<div><span><ClassComponent className="foo" /></span></div>);
+            renderer.render(<MyDiv><span><ClassComponent className="foo" /></span></MyDiv>);
             testExpect(renderer, 'to contain', <ClassComponent className="foo" />);
         });
 
         it('finds a string content', function () {
-            renderer.render(<div><span>some content one</span><span>some content two</span></div>);
+            renderer.render(<MyDiv><span>some content one</span><span>some content two</span></MyDiv>);
             testExpect(renderer, 'to contain', 'some content two');
         });
 
         it('does not find a string that does not exist', function () {
 
-            renderer.render(<div><span>some content one</span><span>some content two</span></div>);
+            renderer.render(<MyDiv><span>some content one</span><span>some content two</span></MyDiv>);
             expect(() => testExpect(renderer, 'to contain', 'some content three'), 'to throw',
                 'expected\n' +
                 '<div>\n' +
@@ -1399,7 +1414,7 @@ describe('unexpected-react-shallow', () => {
             // Currently it's quite difficult to implement sensibly, as it would mean that searching
             // for an element with text content would also match if a partial string matched.
             // Maybe we allow a regex... :)
-            renderer.render(<div><span>some content one</span><span>some content two</span></div>);
+            renderer.render(<MyDiv><span>some content one</span><span>some content two</span></MyDiv>);
             expect(() => testExpect(renderer, 'to contain', 'some content'), 'to throw',
                 'expected\n' +
                 '<div>\n' +
@@ -1415,19 +1430,21 @@ describe('unexpected-react-shallow', () => {
 
         it('finds a multi-part string', function () {
 
-            renderer.render(<span>button clicked {5} times</span>);
+            renderer.render(<MyDiv><span>button clicked {5} times</span></MyDiv>);
             testExpect(renderer, 'to contain', 'button clicked 5 times');
         });
 
         it('does not find a multi-part string when `exactly` is used', function () {
 
-            renderer.render(<span>button clicked {5} times</span>);
+            renderer.render(<MyDiv><span>button clicked {5} times</span></MyDiv>);
             expect(() => testExpect(renderer, 'to contain exactly', 'button clicked 5 times'),
                 'to throw',
                 'expected\n' +
-                '<span>\n' +
-                '  button clicked 5 times\n' +
-                '</span>\n' +
+                '<div>\n' +
+                '  <span>\n' +
+                '    button clicked 5 times\n' +
+                '  </span>\n' +
+                '</div>\n' +
                 "to contain exactly 'button clicked 5 times'");
         });
 
@@ -1435,46 +1452,48 @@ describe('unexpected-react-shallow', () => {
 
             // See the 'does not find a partial string' test above
             // This behaviour may change
-            renderer.render(<span>button clicked {5} times</span>);
+            renderer.render(<MyDiv><span>button clicked {5} times</span></MyDiv>);
             expect(() => testExpect(renderer, 'to contain', 'button clicked '), 'to throw',
                 'expected\n' +
-                '<span>\n' +
-                '  button clicked 5 times\n' +
-                '</span>\n' +
+                '<div>\n' +
+                '  <span>\n' +
+                '    button clicked 5 times\n' +
+                '  </span>\n' +
+                '</div>\n' +
                 "to contain 'button clicked '");
         });
 
         it('finds part of a multi-part string when exactly is used', function () {
 
-            renderer.render(<span>button clicked {5} times</span>);
+            renderer.render(<MyDiv><span>button clicked {5} times</span></MyDiv>);
             testExpect(renderer, 'to contain exactly', 'button clicked ');
         });
 
         it('finds a match in an array of children', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <span>nested</span>
                     <span>
                         <ClassComponent className="bar" />
                         <ClassComponent className="foo" />
                         <ClassComponent className="cheese" />
                     </span>
-                </div>);
+                </MyDiv>);
             testExpect(renderer, 'to contain', <ClassComponent className="foo" />);
         });
 
         it('does not find a match when it does not exist', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <span>nested</span>
                     <span>
                         <ClassComponent className="bar" />
                         <ClassComponent className="foo" />
                         <ClassComponent className="cheese" />
                     </span>
-                </div>);
+                </MyDiv>);
 
             expect(() => testExpect(renderer, 'to contain', <ClassComponent className="notexists" />),
                 'to throw',
@@ -1495,7 +1514,7 @@ describe('unexpected-react-shallow', () => {
         it('does not find a match when the children of a candidate match are different', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <span>nested</span>
                     <span>
                         <ClassComponent className="bar" />
@@ -1504,7 +1523,7 @@ describe('unexpected-react-shallow', () => {
                             <span>something else</span>
                         </ClassComponent>
                     </span>
-                </div>);
+                </MyDiv>);
 
             expect(() => testExpect(renderer, 'to contain',
                     <ClassComponent className="candidate">
@@ -1536,7 +1555,7 @@ describe('unexpected-react-shallow', () => {
 
         it('finds the match when there are extra children in the render, but `exactly` is not used', function () {
             renderer.render(
-                <div>
+                <MyDiv>
                     <span>nested</span>
                     <span>
                         <ClassComponent className="bar" />
@@ -1547,7 +1566,7 @@ describe('unexpected-react-shallow', () => {
                             <span>three</span>
                         </ClassComponent>
                     </span>
-                </div>);
+                </MyDiv>);
 
             testExpect(renderer, 'to contain',
                 <ClassComponent className="candidate">
@@ -1558,28 +1577,28 @@ describe('unexpected-react-shallow', () => {
 
         it('finds the match when there are extra props in the render, but `exactly` is not used', function () {
             renderer.render(
-                <div>
+                <MyDiv>
                     <span>nested</span>
                     <span>
                         <ClassComponent className="bar" />
                         <ClassComponent className="foo" />
                         <ClassComponent className="candidate" id="123" />
                     </span>
-                </div>);
+                </MyDiv>);
 
             testExpect(renderer, 'to contain', <ClassComponent className="candidate"/>);
         });
 
         it('does not find a match when there are extra props in the render, and `exactly` is used', function () {
             renderer.render(
-                <div>
+                <MyDiv>
                     <span>nested</span>
                     <span>
                         <ClassComponent className="bar" />
                         <ClassComponent className="foo" />
                         <ClassComponent className="candidate" id="123" />
                     </span>
-                </div>);
+                </MyDiv>);
 
             expect(() => testExpect(renderer, 'to contain exactly', <ClassComponent className="candidate"/>),
                 'to throw',
@@ -1600,7 +1619,7 @@ describe('unexpected-react-shallow', () => {
 
         it('does not find a match when there are extra children in the render, and `exactly` is used', function () {
             renderer.render(
-                <div>
+                <MyDiv>
                     <span>nested</span>
                     <span>
                         <ClassComponent className="bar" />
@@ -1611,7 +1630,7 @@ describe('unexpected-react-shallow', () => {
                             <span>three</span>
                         </ClassComponent>
                     </span>
-                </div>);
+                </MyDiv>);
 
             expect(() => testExpect(renderer, 'to contain exactly',
                 <ClassComponent className="candidate">
@@ -1704,7 +1723,7 @@ describe('unexpected-react-shallow', () => {
 
         it('finds a match when the render contains children, but the expected does not, and `exactly` is not used', function () {
             renderer.render(
-                <div>
+                <MyDiv>
                     <span>nested</span>
                     <span>
                         <ClassComponent className="bar" />
@@ -1715,14 +1734,14 @@ describe('unexpected-react-shallow', () => {
                             <span>three</span>
                         </ClassComponent>
                     </span>
-                </div>);
+                </MyDiv>);
 
             testExpect(renderer, 'to contain', <ClassComponent className="candidate" />);
         });
 
         it('does not find a match when the render contains children, but the expected does not, and `exactly` is used', function () {
             renderer.render(
-                <div>
+                <MyDiv>
                     <span>nested</span>
                     <span>
                         <ClassComponent className="bar" />
@@ -1733,7 +1752,7 @@ describe('unexpected-react-shallow', () => {
                             <span>three</span>
                         </ClassComponent>
                     </span>
-                </div>);
+                </MyDiv>);
 
             expect(() => testExpect(renderer, 'to contain exactly', <ClassComponent className="candidate" />),
                 'to throw',
@@ -1764,13 +1783,13 @@ describe('unexpected-react-shallow', () => {
         it('does not find a match if the expected has children, but the candidate match does not', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <span>nested</span>
                     <span>
                         <ClassComponent className="bar" />
                         <ClassComponent className="candidate" />
                     </span>
-                </div>);
+                </MyDiv>);
 
             expect(() => testExpect(renderer, 'to contain',
                 <ClassComponent className="candidate">
@@ -1797,18 +1816,18 @@ describe('unexpected-react-shallow', () => {
         it('matches even with removals in complex content without `exactly`', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
-                        <div className="one" />
+                        <MyDiv className="one" />
                         <ES5Component className="three" />
                         <span>foo</span>
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             testExpect(renderer, 'to contain',
                     <ClassComponent>
-                        <div className="one" />
+                        <MyDiv className="one" />
                         <span>foo</span>
                     </ClassComponent>
             );
@@ -1817,13 +1836,13 @@ describe('unexpected-react-shallow', () => {
         it('does not match with a removal and an addition in complex content with `exactly`', function () {
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         <div className="one" />
                         <ES5Component className="three" />
                         <span>foo</span>
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             expect(() => testExpect(renderer, 'to contain exactly',
@@ -1861,10 +1880,11 @@ describe('unexpected-react-shallow', () => {
             it('should satisfy a matching output', () => {
 
                 renderer.render(
-                    <div>
+                    <MyDiv>
                         <span className="one">foo</span>
                         <span className="two">bar</span>
-                    </div>)
+                    </MyDiv>
+                );
 
                 testExpect(renderer.getRenderOutput(), 'to satisfy',
                 <div>
