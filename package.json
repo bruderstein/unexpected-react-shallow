@@ -24,14 +24,14 @@
     "istanbul": "^0.3.17",
     "mocha": "^2.2.5",
     "react": "^0.13.3",
-    "unexpected": "^9.5.0"
+    "unexpected": "^10.0.0"
   },
   "dependencies": {
     "array-changes": "^1.0.3",
     "magicpen-prism": "^2.2.0"
   },
   "peerDependencies": {
-    "unexpected": "^8.0.0 || ^9.0.0",
+    "unexpected": "^10.0.0",
     "react": "^0.13.0"
   },
   "author": "Dave Brotherstone <davegb@pobox.com>",
