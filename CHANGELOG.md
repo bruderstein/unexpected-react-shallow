@@ -1,4 +1,7 @@
 
+#v0.6.0
+* Compatibility with Unexpected v10.x.x
+
 #v0.5.0
 
 * Added `'to contain with all children'` and `'to have rendered with all children'` assertions, to check for
