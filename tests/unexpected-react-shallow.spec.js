@@ -34,6 +34,13 @@ class MyDiv extends React.Component {
     }
 }
 
+const FunctionComp = function (props) {
+    return (<div {...props} />);
+};
+
+const versionParts = React.version.split('.');
+const isReact014 = (parseFloat(versionParts[0] + '.' + versionParts[1]) >= 0.14);
+
 describe('unexpected-react-shallow', () => {
 
     var testExpect;
@@ -54,6 +61,16 @@ describe('unexpected-react-shallow', () => {
 
         testExpect(element, 'to be a', 'ReactElement');
     });
+
+    if (isReact014) {
+        it('identifies a pure function component', () => {
+
+            renderer.render(<FunctionComp />);
+            var element = renderer.getRenderOutput();
+
+            testExpect(element, 'to be a', 'ReactElement');
+        });
+    }
 
     it('identifies a ShallowRenderer', () => {
 
@@ -1333,14 +1350,11 @@ describe('unexpected-react-shallow', () => {
                 '</div>\n' +
                 '\n' +
                 '<div className="outer">\n' +
-                "  123 // should be <span>\n" +
+                '  123 // should be <span>\n' +
                 '      //             123\n' +
                 '      //           </span>\n' +
                 '</div>');
         });
-
-
-
     });
 
 
