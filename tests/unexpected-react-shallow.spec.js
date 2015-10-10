@@ -19,16 +19,12 @@ function createNoNameComponent() {
 var NoNameComponent = createNoNameComponent();
 
 class ClassComponent extends React.Component {
-    render() { return <div className="class-component">{this.props.content}</div>; }
-}
-
-
-function render(renderer, component) {
-    if (React.version === '0.14.0' && typeof component.type === 'string') {
-        return component;
-    } else {
-        renderer.render(<div />);
-        return renderer.getRenderOutput();
+    render() {
+        return (
+            <div className="class-component">
+                {this.props.content}
+            </div>
+        );
     }
 }
 
@@ -1119,13 +1115,13 @@ describe('unexpected-react-shallow', () => {
             var content = 'test';
 
             renderer.render(
-                <div>
+                <MyDiv>
                     <ClassComponent>
                         <div className="one" />
                         <ES5Component className="three" />
                         <span>foo</span>
                     </ClassComponent>
-                </div>
+                </MyDiv>
             );
 
             expect(() => testExpect(renderer, 'to have rendered with all children',
@@ -1168,51 +1164,61 @@ describe('unexpected-react-shallow', () => {
 
         it('highlights the block removal for deep children', function () {
             renderer.render(
-                <ul>
-                    <li>one</li>
-                    <li>two</li>
-                    <li>three</li>
-                </ul>
+                <MyDiv>
+                    <ul>
+                        <li>one</li>
+                        <li>two</li>
+                        <li>three</li>
+                    </ul>
+                </MyDiv>
             );
 
             expect(() => testExpect(renderer, 'to have rendered with all children',
-                <ul>
-                    <li>one</li>
-                    <li>two</li>
-                </ul>), 'to throw',
+                <div>
+                    <ul>
+                        <li>one</li>
+                        <li>two</li>
+                    </ul>
+                </div>), 'to throw',
                 'expected\n' +
-                '<ul>\n' +
-                '  <li>\n' +
-                '    one\n' +
-                '  </li>\n' +
-                '  <li>\n' +
-                '    two\n' +
-                '  </li>\n' +
-                '  <li>\n' +
-                '    three\n' +
-                '  </li>\n' +
-                '</ul>\n' +
+                '<div>\n' +
+                '  <ul>\n' +
+                '    <li>\n' +
+                '      one\n' +
+                '    </li>\n' +
+                '    <li>\n' +
+                '      two\n' +
+                '    </li>\n' +
+                '    <li>\n' +
+                '      three\n' +
+                '    </li>\n' +
+                '  </ul>\n' +
+                '</div>\n' +
                 'to have rendered with all children\n' +
-                '<ul>\n' +
-                '  <li>\n' +
-                '    one\n' +
-                '  </li>\n' +
-                '  <li>\n' +
-                '    two\n' +
-                '  </li>\n' +
-                '</ul>\n' +
+                '<div>\n' +
+                '  <ul>\n' +
+                '    <li>\n' +
+                '      one\n' +
+                '    </li>\n' +
+                '    <li>\n' +
+                '      two\n' +
+                '    </li>\n' +
+                '  </ul>\n' +
+                '</div>\n' +
                 '\n' +
-                '<ul>\n' +
-                '  <li>\n' +
-                '    one\n' +
-                '  </li>\n' +
-                '  <li>\n' +
-                '    two\n' +
-                '  </li>\n' +
-                '  <li>    // should be removed\n' +
-                '    three //\n' +
-                '  </li>   //\n' +
-                '</ul>');
+                '<div>\n' +
+                '  <ul>\n' +
+                '    <li>\n' +
+                '      one\n' +
+                '    </li>\n' +
+                '    <li>\n' +
+                '      two\n' +
+                '    </li>\n' +
+                '    <li>    // should be removed\n' +
+                '      three //\n' +
+                '    </li>   //\n' +
+                '  </ul>\n' +
+                '</div>');
         });
 
         it('identifies when a string element should be a real element', function () {
@@ -1671,7 +1677,7 @@ describe('unexpected-react-shallow', () => {
 
         it('does not find a match when there are extra children in the render, and `with all children` is used', function () {
             renderer.render(
-                <div>
+                <MyDiv>
                     <span>nested</span>
                     <span>
                         <ClassComponent className="bar" />
@@ -1682,7 +1688,7 @@ describe('unexpected-react-shallow', () => {
                             <span>three</span>
                         </ClassComponent>
                     </span>
-                </div>);
+                </MyDiv>);
 
             expect(() => testExpect(renderer, 'to contain with all children',
                 <ClassComponent className="candidate">
