@@ -1,3 +1,5 @@
+#v0.6.1
+* Compatibility with React 0.14 (thanks @sunesimonsen)
 
 #v0.6.0
 * Compatibility with Unexpected v10.x.x
