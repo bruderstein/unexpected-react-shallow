@@ -31,7 +31,7 @@ exports.addAssertionsTo = function (expect) {
         });
     });
 
-    expect.addAssertion('<ReactElement> to contain [exactly][with all children] <ReactElement|string>', function (expect, subject, expected) {
+    expect.addAssertion('<ReactElement> to contain [exactly] [with all children] <ReactElement|string>', function (expect, subject, expected) {
 
         if (!Search.findElementIn(subject, expected, expect, {
                 exactly: this.flags.exactly,
@@ -49,21 +49,13 @@ exports.addAssertionsTo = function (expect) {
     expect.addAssertion('<ReactShallowRenderer> to have [exactly] rendered [with all children] <ReactElement>', function (expect, subject, renderOutput) {
 
         var actual = subject.getRenderOutput();
-        return expect(actual, 'to have ' + (this.flags.exactly ? 'exactly ' : '') + 'rendered' +
-            (this.flags['with all children'] ? ' with all children' : ''), renderOutput);
+        return expect(actual, 'to have [exactly] rendered [with all children]', renderOutput);
     });
 
-    expect.addAssertion('<ReactShallowRenderer> to contain [exactly][with all children] <ReactElement|string>', function (expect, subject, expected) {
+    expect.addAssertion('<ReactShallowRenderer> to contain [exactly] [with all children] <ReactElement|string>', function (expect, subject, expected) {
 
         var actual = subject.getRenderOutput();
-        var extensions = '';
-        if (this.flags.exactly) {
-            extensions = ' exactly';
-        }
-        if (this.flags['with all children']) {
-            extensions = ' with all children';
-        }
-        return expect(actual, 'to contain' + extensions, expected);
+        return expect(actual, 'to contain [exactly] [with all children]', expected);
     });
 
 };
