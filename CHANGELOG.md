@@ -1,3 +1,6 @@
+#v0.6.2
+* Remove unnecessary require()s, causing warnings with React 0.14 (thanks @sunesimonsen for the hint)
+
 #v0.6.1
 * Compatibility with React 0.14 (thanks @sunesimonsen)
 
