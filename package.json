@@ -1,6 +1,6 @@
 {
   "name": "unexpected-react-shallow",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "description": "Unexpected plugin for React shallow renderer",
   "keywords": [
    "unexpected",
