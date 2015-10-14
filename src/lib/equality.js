@@ -44,7 +44,15 @@ exports.elementsMatch = internals.elementsMatch = function elementsMatch(actual,
     // For 'exactly', we can just check the count of the actual children matches,
     // string children will not be concatenated in this mode, and serves to also check
     // the case that the expected does not have children, but the actual does (ignored when exactly=false)
-    if (options.exactly && React.Children.count(expected.props.children) !== React.Children.count(actual.props.children)) {
+
+    var shouldNormalize = !options.exactly;
+    var actualChildren = Element.getChildrenArray(actual.props.children, {
+        normalize: shouldNormalize
+    });
+    var expectedChildren = Element.getChildrenArray(expected.props.children, {
+        normalize: shouldNormalize
+    });
+    if ((options.exactly || options.withAllChildren) && actualChildren.length !== expectedChildren.length) {
         return false;
     }
 
@@ -53,13 +61,6 @@ exports.elementsMatch = internals.elementsMatch = function elementsMatch(actual,
             return false;
         }
 
-        var shouldNormalize = !options.exactly;
-        var actualChildren = Element.getChildrenArray(actual.props.children, {
-            normalize: shouldNormalize
-        });
-        var expectedChildren = Element.getChildrenArray(expected.props.children, {
-            normalize: shouldNormalize
-        });
 
         var arrayDiffs = ArrayChanges(
             actualChildren,

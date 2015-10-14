@@ -54,7 +54,12 @@ exports.getProps = function getProps(element) {
 exports.getChildrenArray = function getChildrenArray(children, options) {
 
     var childrenArray = [];
-    React.Children.forEach(children, function (child) { childrenArray.push(child); });
+    React.Children.forEach(children, function (child) {
+        if (child !== null) {
+            childrenArray.push(child);
+        }
+    });
+
     if (options.normalize) {
         return childrenArray.reduce(concatenateStringChildren, []);
     }

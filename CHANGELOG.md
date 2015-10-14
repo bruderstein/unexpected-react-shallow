@@ -1,3 +1,9 @@
+#v0.7.0
+* Fixed issue where an element rendered with children, but was not expected to have any children would be accepted
+when using `with all children`
+* Fixed issue when an element renders a `null`, but was not being ignored as a "child" when using `with all children` 
+or `exactly` (#8) - thanks to @dchambers for reporting
+
 #v0.6.2
 * Remove unnecessary require()s, causing warnings with React 0.14 (thanks @sunesimonsen for the hint)
 

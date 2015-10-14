@@ -1355,6 +1355,76 @@ describe('unexpected-react-shallow', () => {
                 '      //           </span>\n' +
                 '</div>');
         });
+
+        it('ignores components that render null in an array when using `with all children`', function () {
+
+            const RenderNull = React.createClass({
+
+               render: function () {
+
+                   const children = [ <span key="1">one</span>, null, <span key="2">two</span> ];
+                    return (
+
+                        <div className="something">
+                            {children}
+                        </div>
+                    );
+               }
+            });
+            renderer.render(<RenderNull />);
+            testExpect(renderer, 'to have rendered with all children',
+            <div>
+                <span>one</span>
+                <span>two</span>
+            </div>);
+        });
+
+        it('ignores null children when using `with all children`', function () {
+
+            const RenderNull = React.createClass({
+
+                render: function () {
+
+                    return (
+                        <div>
+                            {null}
+                        </div>
+                    );
+                }
+            });
+            renderer.render(<RenderNull />);
+
+            testExpect(renderer, 'to have rendered with all children', <div /> );
+        });
+
+        it("highlights when an element renders children when it shouldn't when using `with all children`", function () {
+
+            const RenderNull = React.createClass({
+
+                render: function () {
+
+                    return (
+                        <div>
+                            <div />
+                        </div>
+                    );
+                }
+            });
+            renderer.render(<RenderNull />);
+
+            expect(() => testExpect(renderer, 'to have rendered with all children',
+                <div></div>
+            ), 'to throw',
+                'expected\n' +
+                '<div>\n' +
+                '  <div />\n' +
+                '</div>\n' +
+                'to have rendered with all children <div />\n' +
+                '\n' +
+                '<div>\n' +
+                '  <div /> // should be removed\n' +
+                '</div>' );
+        });
     });
 
 
