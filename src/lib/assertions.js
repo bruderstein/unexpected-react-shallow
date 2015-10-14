@@ -5,7 +5,8 @@ var Search = require('./search');
 
 exports.addAssertionsTo = function (expect) {
 
-    expect.addAssertion('<ReactElement> to have [exactly] rendered [with all children] <ReactElement>', function (expect, subject, renderOutput) {
+    expect.addAssertion(['<ReactElement> to have [exactly] rendered <ReactElement>',
+        '<ReactElement> to have rendered [with all children] <ReactElement>'], function (expect, subject, renderOutput) {
 
         var exactly = this.flags.exactly;
         var withAllChildren = this.flags['with all children'];
@@ -31,7 +32,8 @@ exports.addAssertionsTo = function (expect) {
         });
     });
 
-    expect.addAssertion('<ReactElement> to contain [exactly] [with all children] <ReactElement|string>', function (expect, subject, expected) {
+    expect.addAssertion(['<ReactElement> to contain [exactly] <ReactElement|string>',
+        '<ReactElement> to contain [with all children] <ReactElement|string>'], function (expect, subject, expected) {
 
         if (!Search.findElementIn(subject, expected, expect, {
                 exactly: this.flags.exactly,
@@ -46,13 +48,14 @@ exports.addAssertionsTo = function (expect) {
         return expect(subject, 'to have rendered', expected);
     });
 
-    expect.addAssertion('<ReactShallowRenderer> to have [exactly] rendered [with all children] <ReactElement>', function (expect, subject, renderOutput) {
-
+    expect.addAssertion(['<ReactShallowRenderer> to have [exactly] rendered <ReactElement>',
+        '<ReactShallowRenderer> to have rendered [with all children] <ReactElement>'], function (expect, subject, renderOutput) {
         var actual = subject.getRenderOutput();
         return expect(actual, 'to have [exactly] rendered [with all children]', renderOutput);
     });
 
-    expect.addAssertion('<ReactShallowRenderer> to contain [exactly] [with all children] <ReactElement|string>', function (expect, subject, expected) {
+    expect.addAssertion(['<ReactShallowRenderer> to contain [with all children] <ReactElement|string>',
+        '<ReactShallowRenderer> to contain [exactly] <ReactElement|string>'], function (expect, subject, expected) {
 
         var actual = subject.getRenderOutput();
         return expect(actual, 'to contain [exactly] [with all children]', expected);
