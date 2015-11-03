@@ -3,6 +3,13 @@ var Diff = require('./diff');
 var Element = require('./element');
 var Equality = require('./equality');
 var Write = require('./write');
+var UnexpectedHtmlLike = require('unexpected-htmllike');
+var JsxHtmlLikeAdapter = require('unexpected-htmllike-jsx-adapter');
+
+
+var jsxAdapter = JsxHtmlLikeAdapter.create();
+
+var jsxHtmlLike = new UnexpectedHtmlLike(jsxAdapter);
 
 exports.addTypeTo = function (expect) {
     expect.addType({
@@ -20,33 +27,7 @@ exports.addTypeTo = function (expect) {
 
         inspect: function (value, depth, output, inspect) {
 
-            output
-                .prismPunctuation('<')
-                .prismTag(Element.getName(value));
-
-            Write.writeProps(output, value.props);
-
-            if (React.Children.count(value.props.children)) {
-                output.prismPunctuation('>');
-                output.nl().indentLines();
-
-                var children = Element.getChildrenArray(value.props.children, {normalize: true});
-
-                children.forEach(function (child) {
-
-                    if (typeof child === 'string') {
-                        output.i().prismString(child).nl();
-                    } else {
-                        output.i().block(inspect(child)).nl();
-                    }
-                });
-                output.outdentLines();
-                output.i()
-                    .prismPunctuation('</').prismTag(Element.getName(value)).prismPunctuation('>');
-
-            } else {
-                output.prismPunctuation(' />');
-            }
+            return jsxHtmlLike.inspect(value, depth, output, inspect);
         },
 
         diff: function (actual, expected, output, diff, inspect, equal) {

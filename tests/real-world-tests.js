@@ -31,7 +31,7 @@ describe('MyComponent', function () {
         expect(renderer, 'to have rendered',
             <div className="my-component">
                 <ChildComponent id={123}>
-                    0
+                    {0}
                 </ChildComponent>
             </div>
         );
