@@ -22,7 +22,7 @@ module.exports = function (wallaby) {
        workers: {
            initial: 1,
            regular: 1,
-           recycle: false
+           recycle: true
        }
    };
 };

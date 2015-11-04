@@ -1,64 +1,105 @@
+var UnexpectedHtmlLike = require('unexpected-htmllike');
+var JsxHtmlLikeAdapter = require('unexpected-htmllike-jsx-adapter');
 
-var Diff = require('./diff');
-var Equality = require('./equality');
-var Search = require('./search');
 
 exports.addAssertionsTo = function (expect) {
 
-    expect.addAssertion(['<ReactElement> to have [exactly] rendered <ReactElement>',
-        '<ReactElement> to have rendered [with all children] <ReactElement>'], function (expect, subject, renderOutput) {
+      expect.addAssertion(['<ReactElement> to have [exactly] rendered <ReactElement>',
+        '<ReactElement> to have rendered [with all children] [with all wrappers] <ReactElement>'], function (expect, subject, expected) {
 
-        var exactly = this.flags.exactly;
-        var withAllChildren = this.flags['with all children'];
+            var exactly = this.flags.exactly;
+            var withAllChildren = this.flags['with all children'];
+            var withAllWrappers = this.flags['with all wrappers'];
 
-        if (exactly && withAllChildren) {
-            return expect.fail('`exactly` and `with all children` cannot be used together. `exactly` implies `with all children`');
-        }
+            var adapter = new JsxHtmlLikeAdapter();
+            var jsxHtmlLike = new UnexpectedHtmlLike(adapter);
+            if (!exactly) {
+                adapter.setOptions({ concatTextContent: true });
+            }
 
-        return expect.withError(function () {
-            return Equality.assertElementsMatch(subject, renderOutput, expect, {
-                exactly: exactly,
-                withAllChildren: withAllChildren
-            });
-        }, function (e) {
-            return expect.fail({
-                diff : function (output, diff, inspect, equal) {
-                    return Diff.diffElements(subject, renderOutput, output, diff, inspect, equal, {
-                        exactly: exactly,
-                        withAllChildren: withAllChildren
+            var options = {
+                diffWrappers: exactly || withAllWrappers,
+                diffExtraChildren: exactly || withAllChildren,
+                diffExtraAttributes: exactly
+            };
+
+            var diffResult = jsxHtmlLike.diff(adapter, subject, expected, expect.output.clone(), expect.diff.bind(expect), expect.inspect.bind(expect),
+                expect.equal.bind(expect), options);
+
+            if (diffResult.weight !== 0) {
+                console.log(diffResult.output.toString())
+                return expect.fail({
+                    diff: function () {
+                        return {
+                            diff: diffResult.output
+                        };
+                    }
+                });
+            }
+
+        });
+
+        expect.addAssertion(['<ReactElement> [not] to contain [exactly] <ReactElement|string>',
+            '<ReactElement> [not] to contain [with all children] [with all wrappers] <ReactElement|string>'], function (expect, subject, expected) {
+
+            var exactly = this.flags.exactly;
+            var withAllChildren = this.flags['with all children'];
+            var withAllWrappers = this.flags['with all wrappers'];
+
+            var adapter = new JsxHtmlLikeAdapter();
+            var jsxHtmlLike = new UnexpectedHtmlLike(adapter);
+            if (!exactly) {
+                adapter.setOptions({ concatTextContent: true });
+            }
+
+            var options = {
+                diffWrappers: exactly || withAllWrappers,
+                diffExtraChildren: exactly || withAllChildren,
+                diffExtraAttributes: exactly
+            };
+
+            var containsResult = jsxHtmlLike.contains(adapter, subject, expected,
+                expect.output, expect.diff.bind(expect),  expect.inspect.bind(expect), expect.equal.bind(expect), options);
+
+            if (this.flags.not) {
+                if (containsResult.found) {
+                    expect.fail({
+                        diff: output => {
+                            return {
+                                diff: output.error('but found the following match').nl().append(containsResult.bestMatch.output)
+                            };
+                        }
                     });
                 }
-            });
+                return;
+            }
+
+            if (!containsResult.found) {
+                expect.fail({
+                    diff: function (output) {
+                        return {
+                            diff: output.error('the best match was').nl().append(containsResult.bestMatch.output)
+                        };
+                    }
+                });
+            }
+
         });
-    });
 
-    expect.addAssertion(['<ReactElement> to contain [exactly] <ReactElement|string>',
-        '<ReactElement> to contain [with all children] <ReactElement|string>'], function (expect, subject, expected) {
+        expect.addAssertion('<ReactElement> to satisfy <ReactElement>', function (expect, subject, renderOutput) {
+            return expect(subject, 'to have rendered', renderOutput);
+        });
 
-        if (!Search.findElementIn(subject, expected, expect, {
-                exactly: this.flags.exactly,
-                withAllChildren: this.flags['with all children']
-            })) {
-            expect.fail();
-        }
-    });
+        expect.addAssertion(['<ReactShallowRenderer> to have [exactly] rendered <ReactElement>',
+            '<ReactShallowRenderer> to have rendered [with all children] [with all wrappers] <ReactElement>'], function (expect, subject, renderOutput) {
+            var actual = subject.getRenderOutput();
+            return expect(actual, 'to have [exactly] rendered [with all children] [with all wrappers]', renderOutput);
+        });
 
-    expect.addAssertion('<ReactElement> to satisfy <ReactElement>', function (expect, subject, expected) {
-
-        return expect(subject, 'to have rendered', expected);
-    });
-
-    expect.addAssertion(['<ReactShallowRenderer> to have [exactly] rendered <ReactElement>',
-        '<ReactShallowRenderer> to have rendered [with all children] <ReactElement>'], function (expect, subject, renderOutput) {
-        var actual = subject.getRenderOutput();
-        return expect(actual, 'to have [exactly] rendered [with all children]', renderOutput);
-    });
-
-    expect.addAssertion(['<ReactShallowRenderer> to contain [with all children] <ReactElement|string>',
-        '<ReactShallowRenderer> to contain [exactly] <ReactElement|string>'], function (expect, subject, expected) {
-
-        var actual = subject.getRenderOutput();
-        return expect(actual, 'to contain [exactly] [with all children]', expected);
-    });
+        expect.addAssertion(['<ReactShallowRenderer> [not] to contain [exactly] <ReactElement|string>',
+            '<ReactShallowRenderer> [not] to contain [with all children] [with all wrappers] <ReactElement|string>'], function (expect, subject, renderOutput) {
+            var actual = subject.getRenderOutput();
+            return expect(actual, '[not] to contain [exactly] [with all children] [with all wrappers]', renderOutput);
+        });
 
 };

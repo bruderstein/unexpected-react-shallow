@@ -140,7 +140,7 @@ describe('unexpected-react-shallow', () => {
 
             var fn = function (a, b) { return a + b; };
             renderer.render(<MyDiv onClick={fn} />);
-            expect(renderer, 'to inspect as', /<div onClick=\{function \(a, b\) \{[^]+}}\/>/m);
+            expect(renderer, 'to inspect as', /<div onClick=\{function (fn)?\(a, b\) \{[^]+}} ?\/>/m);
         });
 
         it('outputs a tag with a single string child', () => {
@@ -1202,9 +1202,10 @@ describe('unexpected-react-shallow', () => {
                 'to equal <div><ClassComponent className="foobar" /></div>\n' +
                 '\n' +
                 '<div>\n' +
-                '  <ClassComponent className="foo" // -foo\n' +
+                '  <ClassComponent className="foo" // should be className="foobar"\n' +
+                '                                  // -foo\n' +
                 '                                  // +foobar\n' +
-                '  ></ClassComponent>\n' +
+                '  />\n' +
                 '</div>');
         });
     });
@@ -1674,6 +1675,34 @@ describe('unexpected-react-shallow', () => {
                 '  <span>foo</span>\n' +
                 '</ClassComponent>');
         });
+
+    });
+
+    describe('not contains', () => {
+
+        beforeEach(() => {
+
+            renderer.render(
+                <MyDiv>
+                    <span id="foo" className="extra" />
+                </MyDiv>
+            );
+        });
+
+        it('passes when the content is not found', () => {
+
+            expect(renderer, 'not to contain', <span id="bar" />);
+        });
+
+        it('outputs the match found when content is found', () => {
+
+           expect(() => expect(renderer, 'not to contain', <span id="foo" />), 'to throw',
+               'expected <div><span id="foo" className="extra" /></div>\n' +
+               'not to contain <span id="foo" />\n' +
+               '\n' +
+               'but found the following match\n' +
+               '<span id="foo" className="extra" />');
+        });
     });
 
     describe('to satisfy', () => {
@@ -1697,5 +1726,4 @@ describe('unexpected-react-shallow', () => {
             });
         });
     });
-
 });
