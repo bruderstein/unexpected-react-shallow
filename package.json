@@ -3,11 +3,11 @@
   "version": "0.7.0",
   "description": "Unexpected plugin for React shallow renderer",
   "keywords": [
-   "unexpected",
-   "react",
-   "plugin",
-   "assertion",
-   "shallow renderer"
+    "unexpected",
+    "react",
+    "plugin",
+    "assertion",
+    "shallow renderer"
   ],
   "scripts": {
     "cover": "istanbul cover _mocha -- -u exports --compilers js:babel/register tests",
@@ -28,7 +28,9 @@
   },
   "dependencies": {
     "array-changes": "^1.0.3",
-    "magicpen-prism": "^2.2.0"
+    "magicpen-prism": "^2.2.0",
+    "unexpected-htmllike": "^0.1.0",
+    "unexpected-htmllike-jsx-adapter": "^0.1.0"
   },
   "peerDependencies": {
     "unexpected": "^10.0.0",
@@ -36,11 +38,11 @@
   },
   "author": "Dave Brotherstone <davegb@pobox.com>",
   "repository": {
-      "type": "git",
-      "url": "https://github.com/bruderstein/unexpected-react-shallow.git"
+    "type": "git",
+    "url": "https://github.com/bruderstein/unexpected-react-shallow.git"
   },
   "bugs": {
-      "url": "https://github.com/bruderstein/unexpected-react-shallow/issues"
+    "url": "https://github.com/bruderstein/unexpected-react-shallow/issues"
   },
   "main": "src/unexpected-react-shallow.js",
   "files": [
