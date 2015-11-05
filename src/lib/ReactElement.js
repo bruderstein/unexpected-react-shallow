@@ -27,27 +27,17 @@ exports.addTypeTo = function (expect) {
         },
 
         diff: function (actual, expected, output, diff, inspect, equal) {
-            try {
-                const diffResult = jsxHtmlLike.diff(jsxAdapter, actual, expected, output, diff, inspect, equal, {});
+            const diffResult = jsxHtmlLike.diff(jsxAdapter, actual, expected, output, diff, inspect, equal, {});
 
-                return {
-                    diff: diffResult.output
-                };
-            } catch (e) {
-                console.log('diff Failed', e.stack);
-                throw e;
-            }
+            return {
+                diff: diffResult.output
+            };
         },
 
         equal: function (a, b, equal) {
-            try {
-
-                const diffResult = jsxHtmlLike.diff(jsxAdapter, a, b, expect.output.bind(expect), expect.diff.bind(expect), expect.inspect.bind(expect),
-                    expect.equal.bind(expect), {});
-                return (diffResult.weight === 0);
-            } catch (e) {
-                console.log(e.stack)
-            }
+            const diffResult = jsxHtmlLike.diff(jsxAdapter, a, b, expect.output.bind(expect), expect.diff.bind(expect), expect.inspect.bind(expect),
+                expect.equal.bind(expect), {});
+            return (diffResult.weight === 0);
         }
     });
 };
