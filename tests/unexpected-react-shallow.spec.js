@@ -53,6 +53,9 @@ expect.addAssertion('<any> to inspect as <regexp>', function (expect, subject, v
     expect(expect.inspect(subject).toString(), 'to match', value);
 });
 
+// The tests assume a narrow terminal
+expect.output.preferredWidth = 80;
+
 describe('unexpected-react-shallow', () => {
 
     var renderer, renderer2;
