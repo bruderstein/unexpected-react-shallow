@@ -35,7 +35,7 @@ exports.addTypeTo = function (expect) {
         },
 
         equal: function (a, b, equal) {
-            const diffResult = jsxHtmlLike.diff(jsxAdapter, a, b, expect.output.bind(expect), expect.diff.bind(expect), expect.inspect.bind(expect),
+            const diffResult = jsxHtmlLike.diff(jsxAdapter, a, b, expect.output, expect.diff.bind(expect), expect.inspect.bind(expect),
                 expect.equal.bind(expect), {});
             return (diffResult.weight === 0);
         }
