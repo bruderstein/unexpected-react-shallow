@@ -2,6 +2,11 @@
 [![Coverage Status](https://coveralls.io/repos/bruderstein/unexpected-react-shallow/badge.svg?branch=master&service=github)](https://coveralls.io/github/bruderstein/unexpected-react-shallow?branch=master)
 # unexpected-react-shallow
 
+## Deprecated - use [unexpected-react](https://npmjs.org/package/unexpected-react) instead
+
+----
+
+
 A port of the excellent [unexpected-dom](https://github.com/munter/unexpected-dom) to support
 [React](http://reactjs.org) [shallow renderer](https://facebook.github.io/react/docs/test-utils.html#shallow-rendering).
 
